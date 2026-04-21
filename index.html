@@ -1725,7 +1725,8 @@ function openWeek(week) {
         <div class="day-info">
           <div class="day-name">${day.name}</div>
           <div class="day-detail">${day.detail}${timeRemaining ? `<br><span style="color:var(--purple-light);font-size:10px;font-weight:600;">Unlocks in ${timeRemaining}</span>` : ''}</div>
-          ${hasExercises ? `
+          ${unlocked ? `
+            ${hasExercises ? `
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
               ${day.exercises.map(ex => `
                 <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:12px;padding:10px 12px;">
@@ -1741,10 +1742,11 @@ function openWeek(week) {
                 </div>
               `).join('')}
             </div>
-          ` : hasVideo ? `
+            ` : hasVideo ? `
             <button class="video-toggle" onclick="event.stopPropagation();toggleVideo('${day.id}','${day.videoUrl}')">▶ Watch Workout</button>
             <div class="video-embed-wrap" id="vid-${day.id}"></div>
-          ` : `<span style="font-size:11px;color:var(--faint);margin-top:6px;display:block;">Video coming soon</span>`}
+            ` : `<span style="font-size:11px;color:var(--faint);margin-top:6px;display:block;">Video coming soon</span>`}
+          ` : ''}
         </div>
         <div class="day-type ${isRecovery ? 'recovery' : ''}">${day.type}</div>
       </div>
