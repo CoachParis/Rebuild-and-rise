@@ -1057,6 +1057,42 @@
 </head>
 <body>
 
+<!-- ══════════════ LOGIN SCREEN ══════════════ -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#1e1020;z-index:10000;flex-direction:column;align-items:center;justify-content:center;padding:32px;">
+  <div style="width:100%;max-width:400px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:0.04em;color:#f5eef8;line-height:0.95;">Rebuild<br><span style="color:#9d5cf6;">&</span> Rise</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#cdc6df;margin-top:8px;">A 4-Week Strength Progression for Women Ready for More</div>
+    </div>
+
+    <div style="background:#cdc6df;border-radius:20px;padding:28px;">
+      <div id="auth-title" style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:0.04em;color:#1e1020;margin-bottom:20px;">Create Your Account</div>
+
+      <div id="auth-name-row" style="margin-bottom:12px;">
+        <input id="auth-name" type="text" placeholder="Your first name" style="width:100%;background:white;border:1px solid #b8b0d0;border-radius:10px;padding:12px 14px;font-size:14px;color:#1e1020;outline:none;box-sizing:border-box;" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <input id="auth-email" type="email" placeholder="Email address" style="width:100%;background:white;border:1px solid #b8b0d0;border-radius:10px;padding:12px 14px;font-size:14px;color:#1e1020;outline:none;box-sizing:border-box;" />
+      </div>
+      <div style="margin-bottom:16px;">
+        <input id="auth-password" type="password" placeholder="Password (min 6 characters)" style="width:100%;background:white;border:1px solid #b8b0d0;border-radius:10px;padding:12px 14px;font-size:14px;color:#1e1020;outline:none;box-sizing:border-box;" />
+      </div>
+
+      <div id="auth-error" style="font-size:12px;color:#ef4444;margin-bottom:10px;min-height:16px;"></div>
+
+      <button id="auth-btn" onclick="firebaseSignUp()" style="width:100%;background:#7c3aed;color:white;border:none;border-radius:100px;padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;margin-bottom:14px;">Create Account</button>
+
+      <div id="auth-toggle-text" style="text-align:center;font-size:12px;color:#4a3d5c;">
+        Already have an account? <a href="#" onclick="toggleAuthMode()" style="color:#7c3aed;font-weight:600;">Sign in</a>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;font-size:11px;color:#7a5f85;">
+      Coach Paris Simone | Stress-Integrated Strength System™
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ WELCOME SCREEN ══════════════ -->
 <div id="welcome" class="screen active">
   <div class="welcome-bg"></div>
@@ -1102,6 +1138,10 @@
 <div id="app" class="screen">
   <nav class="top-nav">
     <div class="nav-brand">R<span>&</span>R</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="user-email-display" style="font-size:10px;color:var(--muted);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+      <button onclick="firebaseSignOut()" style="background:transparent;border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:10px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">Sign Out</button>
+    </div>
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="switchTab('dashboard')">Home</button>
       <button class="nav-tab" onclick="switchTab('guide')">My Toolkit</button>
@@ -1115,9 +1155,22 @@
 
     <!-- ── DASHBOARD TAB ── -->
     <div id="tab-dashboard" class="tab-panel active">
+      <!-- COACH BADGE -->
+      <div id="coach-badge" style="display:none;background:#7c3aed;border-radius:14px;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#cdc6df;font-weight:600;margin-bottom:12px;">👑 Coach Dashboard</div>
+        <textarea id="coach-announcement-text" placeholder="Post an announcement to all clients..." style="width:100%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:10px;color:white;font-family:'DM Sans',sans-serif;font-size:13px;resize:none;min-height:70px;outline:none;box-sizing:border-box;"></textarea>
+        <button onclick="saveAnnouncement()" style="margin-top:8px;background:white;color:#7c3aed;border:none;border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Post Announcement</button>
+      </div>
+
+      <!-- COACH ANNOUNCEMENT DISPLAY -->
+      <div id="coach-announcement-display" style="display:none;background:var(--card);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:14px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--purple);font-weight:600;margin-bottom:8px;">📢 From Coach Paris</div>
+        <div class="announcement-text" style="font-size:13px;color:var(--card-text);line-height:1.6;"></div>
+      </div>
+
       <div class="greeting">
         <div class="greeting-label">Welcome Back</div>
-        <div class="greeting-title">You are building<br><strong>something real.</strong></div>
+        <div class="greeting-title" id="greeting-name">You are building<br><strong>something real.</strong></div>
       </div>
 
       <div class="progress-card">
@@ -1161,8 +1214,26 @@
           <div class="stat-label">Workouts</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num" id="statWeek">1</div>
-          <div class="stat-label">Current Wk</div>
+          <div class="stat-num" id="statStreak">0</div>
+          <div class="stat-label">🔥 Streak</div>
+        </div>
+      </div>
+
+      <!-- HYDRATION TRACKER -->
+      <div class="restore-card">
+        <div class="restore-title">💧 Hydration Tracker</div>
+        <div style="font-size:12px;color:var(--card-muted);margin-bottom:14px;">Goal: 80–100 oz daily. Tap to log each glass.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:'Bebas Neue';font-size:48px;letter-spacing:0.04em;color:var(--purple);" id="waterCount">0</div>
+          <div style="font-size:12px;color:var(--card-muted);text-align:right;">oz today<br><span id="waterOz" style="font-size:20px;font-weight:600;color:var(--card-text);">0 oz</span></div>
+        </div>
+        <div style="height:6px;background:#e0daea;border-radius:3px;margin-bottom:14px;">
+          <div id="waterBar" style="height:100%;background:linear-gradient(90deg,#7c3aed,#9d5cf6);border-radius:3px;width:0%;transition:width 0.3s;"></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="logWater(8)" class="btn-sm btn-purple" style="flex:1;">+ 8 oz</button>
+          <button onclick="logWater(16)" class="btn-sm btn-purple" style="flex:1;">+ 16 oz</button>
+          <button onclick="resetWater()" class="btn-sm btn-outline" style="flex:0;padding:10px 14px;">Reset</button>
         </div>
       </div>
 
@@ -1455,9 +1526,211 @@
   </div>
 </div>
 
+<!-- REST TIMER OVERLAY -->
+<div id="rest-timer-overlay" style="display:none;position:fixed;inset:0;background:rgba(30,16,32,0.97);z-index:9999;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+  <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#cdc6df;margin-bottom:12px;">Rest Timer</div>
+  <div id="rest-timer-display" style="font-family:'Bebas Neue';font-size:96px;letter-spacing:0.04em;color:#f5eef8;line-height:1;">0:30</div>
+  <div style="font-size:13px;color:#cdc6df;margin-bottom:32px;">Take a breath. Your next set is coming.</div>
+  <div style="display:flex;gap:12px;">
+    <button onclick="pauseTimer()" id="pauseBtn" style="background:#7c3aed;color:white;border:none;border-radius:100px;padding:14px 28px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Pause</button>
+    <button onclick="stopTimer()" style="background:transparent;color:#cdc6df;border:1px solid #4a3060;border-radius:100px;padding:14px 28px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Skip</button>
+  </div>
+  <div style="margin-top:24px;display:flex;gap:10px;">
+    <button onclick="setTimer(30)" style="background:var(--surface,#2e1a35);color:#cdc6df;border:1px solid #4a3060;border-radius:100px;padding:8px 16px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;">30s</button>
+    <button onclick="setTimer(45)" style="background:var(--surface,#2e1a35);color:#cdc6df;border:1px solid #4a3060;border-radius:100px;padding:8px 16px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;">45s</button>
+    <button onclick="setTimer(60)" style="background:var(--surface,#2e1a35);color:#cdc6df;border:1px solid #4a3060;border-radius:100px;padding:8px 16px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;">60s</button>
+    <button onclick="setTimer(90)" style="background:var(--surface,#2e1a35);color:#cdc6df;border:1px solid #4a3060;border-radius:100px;padding:8px 16px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;">90s</button>
+  </div>
+</div>
+
 <!-- PRINT AREA -->
 <div id="print-area"></div>
 <div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCpF4ykT6BCmfNXTR-o5fsdwMqmsLO5VDA",
+  authDomain: "rebuild-and-rise.firebaseapp.com",
+  projectId: "rebuild-and-rise",
+  storageBucket: "rebuild-and-rise.firebasestorage.app",
+  messagingSenderId: "87951065832",
+  appId: "1:87951065832:web:840c590cfa0580600b3f5d"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// COACH EMAIL
+const COACH_EMAIL = 'parispassports@gmail.com';
+
+// ── AUTH STATE LISTENER ──
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    window.currentUser = user;
+    window.isCoach = user.email === COACH_EMAIL;
+
+    // Load user data from Firestore
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) {
+      const cloudState = userDoc.data().state;
+      if (cloudState) {
+        // Merge cloud state with local
+        const localSaved = localStorage.getItem('rnr-state');
+        const localState = localSaved ? JSON.parse(localSaved) : {};
+        // Cloud takes priority for completion data
+        window.state = { ...localState, ...cloudState };
+        localStorage.setItem('rnr-state', JSON.stringify(window.state));
+      }
+    } else {
+      // First time — create user doc
+      const localSaved = localStorage.getItem('rnr-state');
+      const localState = localSaved ? JSON.parse(localSaved) : {};
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        createdAt: serverTimestamp(),
+        state: localState
+      });
+    }
+
+    // Hide login, show app
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('welcome').classList.add('active');
+    document.getElementById('user-email-display').textContent = user.email;
+
+    // Show coach badge if coach
+    if (window.isCoach) {
+      document.getElementById('coach-badge').style.display = 'flex';
+    }
+
+  } else {
+    window.currentUser = null;
+    window.isCoach = false;
+    // Show login screen
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+});
+
+// ── SAVE TO FIRESTORE ──
+window.saveToCloud = async function() {
+  if (!window.currentUser) return;
+  try {
+    await updateDoc(doc(db, 'users', window.currentUser.uid), {
+      state: window.state,
+      lastUpdated: serverTimestamp()
+    });
+  } catch(e) {
+    console.log('Cloud save error:', e);
+  }
+};
+
+// ── AUTH FUNCTIONS ──
+window.firebaseSignUp = async function() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
+  const errorEl = document.getElementById('auth-error');
+
+  if (!email || !password || !name) {
+    errorEl.textContent = 'Please fill in all fields.';
+    return;
+  }
+  if (password.length < 6) {
+    errorEl.textContent = 'Password must be at least 6 characters.';
+    return;
+  }
+
+  try {
+    document.getElementById('auth-btn').textContent = 'Creating account...';
+    await createUserWithEmailAndPassword(auth, email, password);
+    // Store name in state
+    window.state.clientName = name;
+    errorEl.textContent = '';
+  } catch(e) {
+    errorEl.textContent = e.message.replace('Firebase: ', '').replace(/\(auth.*\)/, '');
+    document.getElementById('auth-btn').textContent = 'Create Account';
+  }
+};
+
+window.firebaseSignIn = async function() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errorEl = document.getElementById('auth-error');
+
+  if (!email || !password) {
+    errorEl.textContent = 'Please enter your email and password.';
+    return;
+  }
+
+  try {
+    document.getElementById('auth-btn').textContent = 'Signing in...';
+    await signInWithEmailAndPassword(auth, email, password);
+    errorEl.textContent = '';
+  } catch(e) {
+    errorEl.textContent = 'Invalid email or password. Please try again.';
+    document.getElementById('auth-btn').textContent = 'Sign In';
+  }
+};
+
+window.firebaseSignOut = async function() {
+  await signOut(auth);
+  showToast('Signed out successfully.');
+};
+
+window.toggleAuthMode = function() {
+  const isSignUp = document.getElementById('auth-name-row').style.display !== 'none';
+  document.getElementById('auth-name-row').style.display = isSignUp ? 'none' : 'block';
+  document.getElementById('auth-btn').textContent = isSignUp ? 'Sign In' : 'Create Account';
+  document.getElementById('auth-btn').onclick = isSignUp ? window.firebaseSignIn : window.firebaseSignUp;
+  document.getElementById('auth-toggle-text').innerHTML = isSignUp
+    ? 'Don\'t have an account? <a href="#" onclick="toggleAuthMode()" style="color:var(--purple-light);">Create one</a>'
+    : 'Already have an account? <a href="#" onclick="toggleAuthMode()" style="color:var(--purple-light);">Sign in</a>';
+  document.getElementById('auth-title').textContent = isSignUp ? 'Welcome Back' : 'Create Your Account';
+  document.getElementById('auth-error').textContent = '';
+};
+
+// ── COACH ANNOUNCEMENTS ──
+window.saveAnnouncement = async function() {
+  const text = document.getElementById('coach-announcement-text').value.trim();
+  if (!text) return;
+  try {
+    await setDoc(doc(db, 'announcements', 'latest'), {
+      text,
+      postedAt: serverTimestamp(),
+      postedBy: window.currentUser.email
+    });
+    showToast('Announcement posted ✓');
+    document.getElementById('coach-announcement-text').value = '';
+    loadAnnouncement();
+  } catch(e) {
+    showToast('Error posting announcement');
+  }
+};
+
+window.loadAnnouncement = async function() {
+  try {
+    const snap = await getDoc(doc(db, 'announcements', 'latest'));
+    if (snap.exists()) {
+      const data = snap.data();
+      const el = document.getElementById('coach-announcement-display');
+      if (el) {
+        el.style.display = 'block';
+        el.querySelector('.announcement-text').textContent = data.text;
+      }
+    }
+  } catch(e) {}
+};
+
+// Load announcement on start
+setTimeout(window.loadAnnouncement, 2000);
+
+</script>
 
 <script>
 // ══════════════ STATE ══════════════
@@ -1563,6 +1836,13 @@ function init() {
   updateDashboard();
   checkUnlocks();
   updateHomeProgressSummary();
+  updateStreak();
+  initHydration();
+  // Personalize greeting
+  if (state.clientName) {
+    const el = document.getElementById('greeting-name');
+    if (el) el.innerHTML = `${state.clientName}, you are building<br><strong>something real.</strong>`;
+  }
 }
 
 function loadState() {
@@ -1578,6 +1858,8 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem('rnr-state', JSON.stringify(state));
+  // Also save to cloud if logged in
+  if (window.saveToCloud) window.saveToCloud();
 }
 
 // ══════════════ RESTORE CODE ══════════════
@@ -1734,10 +2016,13 @@ function openWeek(week) {
                     <span style="font-size:12px;font-weight:600;color:var(--white);">${ex.name}</span>
                     <a href="${ex.url}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;background:var(--purple);border-radius:100px;padding:3px 10px;font-size:10px;font-weight:600;color:white;text-decoration:none;flex-shrink:0;">▶ Watch</a>
                   </div>
-                  <div style="display:flex;gap:10px;">
-                    <span style="font-size:10px;color:var(--purple-light);font-weight:600;">Sets: ${ex.sets}</span>
-                    <span style="font-size:10px;color:var(--purple-light);font-weight:600;">Reps: ${ex.reps}</span>
-                    <span style="font-size:10px;color:var(--purple-light);font-weight:600;">Rest: ${ex.rest}</span>
+                  <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:6px;">
+                    <div style="display:flex;gap:10px;">
+                      <span style="font-size:10px;color:var(--purple-light);font-weight:600;">Sets: ${ex.sets}</span>
+                      <span style="font-size:10px;color:var(--purple-light);font-weight:600;">Reps: ${ex.reps}</span>
+                      <span style="font-size:10px;color:var(--purple-light);font-weight:600;">Rest: ${ex.rest}</span>
+                    </div>
+                    <button onclick="event.stopPropagation();startTimer(30)" style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:100px;padding:3px 10px;font-size:10px;font-weight:600;color:var(--purple-light);cursor:pointer;font-family:'DM Sans',sans-serif;">⏱ Rest</button>
                   </div>
                 </div>
               `).join('')}
@@ -2475,8 +2760,17 @@ function renderProgress() {
         ${fields}
 
         <div style="margin-top:14px;background:#f5f0ff;border:1px solid #e0daea;border-radius:12px;padding:14px;">
-          <div style="font-size:11px;font-weight:600;color:#7c3aed;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">📸 ${photoLabel}</div>
-          <div style="font-size:12px;color:#4a3d5c;line-height:1.6;">${photoNote}</div>
+          <div style="font-size:11px;font-weight:600;color:#7c3aed;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">📸 ${photoLabel}</div>
+          <div style="font-size:12px;color:#4a3d5c;line-height:1.6;margin-bottom:12px;">${photoNote}</div>
+          <button onclick="openPoseCamera('${prefix}')" style="width:100%;background:#7c3aed;color:white;border:none;border-radius:10px;padding:12px;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;">
+            📷 Open Guided Pose Camera
+          </button>
+          ${pd[prefix + '-photo'] ? `
+            <div style="margin-top:10px;text-align:center;">
+              <div style="font-size:11px;color:#4ade80;font-weight:600;margin-bottom:6px;">✓ Photo captured — ${pd[prefix + '-photoDate'] || ''}</div>
+              <img src="${pd[prefix + '-photo']}" style="width:100%;border-radius:10px;max-height:200px;object-fit:cover;" />
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
@@ -2564,6 +2858,127 @@ function renderProgress() {
 
   document.getElementById('progress-content').innerHTML = html;
   updateHomeProgressSummary();
+}
+
+// ══════════════ REST TIMER ══════════════
+let timerInterval = null;
+let timerSeconds = 30;
+let timerRunning = false;
+let timerPaused = false;
+
+function startTimer(seconds) {
+  timerSeconds = seconds;
+  timerRunning = true;
+  timerPaused = false;
+  document.getElementById('rest-timer-overlay').style.display = 'flex';
+  updateTimerDisplay();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!timerPaused) {
+      timerSeconds--;
+      updateTimerDisplay();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('rest-timer-display').textContent = 'GO!';
+        // Vibrate if supported
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        setTimeout(() => stopTimer(), 1500);
+      }
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(timerSeconds / 60);
+  const secs = timerSeconds % 60;
+  document.getElementById('rest-timer-display').textContent =
+    mins > 0 ? `${mins}:${secs.toString().padStart(2,'0')}` : `0:${secs.toString().padStart(2,'0')}`;
+}
+
+function pauseTimer() {
+  timerPaused = !timerPaused;
+  document.getElementById('pauseBtn').textContent = timerPaused ? 'Resume' : 'Pause';
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerPaused = false;
+  document.getElementById('rest-timer-overlay').style.display = 'none';
+  document.getElementById('rest-timer-display').textContent = '0:30';
+  document.getElementById('pauseBtn').textContent = 'Pause';
+}
+
+function setTimer(seconds) {
+  timerSeconds = seconds;
+  updateTimerDisplay();
+  if (!timerRunning) startTimer(seconds);
+}
+
+// ══════════════ STREAK TRACKER ══════════════
+function updateStreak() {
+  const today = new Date().toDateString();
+  const lastActive = state.lastActiveDate;
+
+  if (lastActive === today) {
+    // Already counted today
+  } else if (lastActive === new Date(Date.now() - 86400000).toDateString()) {
+    // Yesterday — extend streak
+    state.streak = (state.streak || 0) + 1;
+    state.lastActiveDate = today;
+    saveState();
+  } else if (!lastActive) {
+    // First day
+    state.streak = 1;
+    state.lastActiveDate = today;
+    saveState();
+  } else {
+    // Streak broken
+    state.streak = 1;
+    state.lastActiveDate = today;
+    saveState();
+  }
+
+  const el = document.getElementById('statStreak');
+  if (el) el.textContent = state.streak || 1;
+}
+
+// ══════════════ HYDRATION TRACKER ══════════════
+function initHydration() {
+  const today = new Date().toDateString();
+  if (state.waterDate !== today) {
+    state.waterOz = 0;
+    state.waterDate = today;
+    saveState();
+  }
+  updateHydrationUI();
+}
+
+function logWater(oz) {
+  state.waterOz = (state.waterOz || 0) + oz;
+  state.waterDate = new Date().toDateString();
+  saveState();
+  updateHydrationUI();
+  if (state.waterOz >= 80) showToast('💧 Hydration goal reached! Amazing work.');
+}
+
+function resetWater() {
+  state.waterOz = 0;
+  saveState();
+  updateHydrationUI();
+}
+
+function updateHydrationUI() {
+  const oz = state.waterOz || 0;
+  const glasses = Math.floor(oz / 8);
+  const pct = Math.min((oz / 100) * 100, 100);
+  const countEl = document.getElementById('waterCount');
+  const ozEl = document.getElementById('waterOz');
+  const barEl = document.getElementById('waterBar');
+  if (countEl) countEl.textContent = glasses;
+  if (ozEl) ozEl.textContent = oz + ' oz';
+  if (barEl) barEl.style.width = pct + '%';
 }
 
 // ══════════════ TOAST ══════════════
