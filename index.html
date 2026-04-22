@@ -1653,7 +1653,13 @@ window.firebaseSignUp = async function() {
     window.state.clientName = name;
     errorEl.textContent = '';
   } catch(e) {
-    errorEl.textContent = e.message.replace('Firebase: ', '').replace(/\(auth.*\)/, '');
+    console.error('Signup error:', e);
+    const msg = e.code || e.message || 'Unknown error';
+    if (msg.includes('email-already-in-use')) errorEl.textContent = 'This email already has an account. Please sign in.';
+    else if (msg.includes('invalid-email')) errorEl.textContent = 'Please enter a valid email address.';
+    else if (msg.includes('weak-password')) errorEl.textContent = 'Password must be at least 6 characters.';
+    else if (msg.includes('network')) errorEl.textContent = 'Network error. Please check your connection.';
+    else errorEl.textContent = 'Error: ' + msg;
     document.getElementById('auth-btn').textContent = 'Create Account';
   }
 };
@@ -1673,7 +1679,15 @@ window.firebaseSignIn = async function() {
     await signInWithEmailAndPassword(auth, email, password);
     errorEl.textContent = '';
   } catch(e) {
-    errorEl.textContent = 'Invalid email or password. Please try again.';
+    console.error('Signin error:', e);
+    const msg = e.code || e.message || 'Unknown error';
+    if (msg.includes('user-not-found') || msg.includes('wrong-password') || msg.includes('invalid-credential')) {
+      errorEl.textContent = 'Invalid email or password. Please try again.';
+    } else if (msg.includes('network')) {
+      errorEl.textContent = 'Network error. Please check your connection.';
+    } else {
+      errorEl.textContent = 'Error: ' + msg;
+    }
     document.getElementById('auth-btn').textContent = 'Sign In';
   }
 };
