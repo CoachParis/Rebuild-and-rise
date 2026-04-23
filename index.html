@@ -1974,7 +1974,7 @@ function init() {
 }
 
 function loadState() {
-  const saved = localStorage.getItem('rnr-state');
+  if (window.state && window.state.startDate) { state = window.state; localStorage.setItem('rnr-state', JSON.stringify(state)); return; } const saved = localStorage.getItem('rnr-state');
   if (saved) {
     try { state = JSON.parse(saved); } catch(e) {}
   }
