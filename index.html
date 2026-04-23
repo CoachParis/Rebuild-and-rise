@@ -1835,13 +1835,13 @@ setTimeout(window.loadAnnouncement, 2000);
 const FEATURES = {
   pushNotifications: true,        // LIVE — automated accountability reminders
   testimonialPrompt: false,       // V2 — auto-collect social proof at Week 4
-  capacityTrendChart: false,      // V2 — visual nervous system pattern graph
+  capacityTrendChart: true,      // V2 — visual nervous system pattern graph
   coachDashboard: false,          // V2 — see all client data as coach
-  strengthLog: false,             // V2 — track weights used each session
-  mealLog: false,                 // V2 — daily Low/Moderate/High meal confirmation
+  strengthLog: true,             // V2 — track weights used each session
+  mealLog: true,                 // V2 — daily Low/Moderate/High meal confirmation
   shoppingListCustomizer: false,  // V2 — check off what you have, print what you need
-  consultationScheduler: false,   // V2 — one-tap booking into your calendar
-  milestoneBadges: false,         // V2 — earned badges for completing weeks and PRs
+  consultationScheduler: true,   // V2 — one-tap booking into your calendar
+  milestoneBadges: true,         // V2 — earned badges for completing weeks and PRs
   communityBoard: false,          // V2 — unlock at 8 purchases
 };
 
@@ -2202,7 +2202,7 @@ function openWeek(week) {
         <div class="cta-tag">✦ You've Done The Work</div>
         <div class="cta-title">Ready to go <em>deeper</em>?</div>
         <div class="cta-desc">You've spent 4 weeks proving what's possible. The 1:1 Mentorship is where we personalize everything — your nervous system, your progression, your life. This is where women transform.</div>
-        <button class="cta-btn" onclick="${FEATURES.consultationScheduler ? "window.open('YOUR_BOOKING_LINK_HERE','_blank')" : "showToast('Consultation booking coming soon!')"}">Book Your Free Consultation</button>
+        <button class="cta-btn" onclick="${FEATURES.consultationScheduler ? "window.open('https://schedule.fillout.com/t/uFpHY18tTous','_blank')" : "showToast('Consultation booking coming soon!')"}">Book Your Free Consultation</button>
       </div>
       ${FEATURES.testimonialPrompt ? '' : ''}
       ${renderConsultationScheduler()}
@@ -2492,7 +2492,7 @@ function renderConsultationScheduler() {
       <div class="cta-tag">✦ Ready to Go Deeper?</div>
       <div class="cta-title">Book Your <em>Free Consultation</em></div>
       <div class="cta-desc">One conversation could change everything. Let's talk about what's possible for you in the 1:1 Mentorship.</div>
-      <button class="cta-btn" onclick="window.open('YOUR_BOOKING_LINK_HERE','_blank')">Book My Free Consultation →</button>
+      <button class="cta-btn" onclick="window.open('https://schedule.fillout.com/t/uFpHY18tTous','_blank')">Book My Free Consultation →</button>
     </div>
   `;
 }
