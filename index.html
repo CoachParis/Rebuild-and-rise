@@ -1085,6 +1085,9 @@
       <div id="auth-toggle-text" style="text-align:center;font-size:12px;color:#4a3d5c;">
         Already have an account? <a href="#" onclick="toggleAuthMode()" style="color:#7c3aed;font-weight:600;">Sign in</a>
       </div>
+      <div id="forgot-password-row" style="text-align:center;margin-top:8px;display:none;">
+        <a href="#" onclick="forgotPassword()" style="color:#7c3aed;font-size:12px;">Forgot password?</a>
+      </div>
     </div>
 
     <div style="text-align:center;margin-top:20px;font-size:11px;color:#7a5f85;">
@@ -1219,6 +1222,29 @@
         </div>
       </div>
 
+      <!-- QUICK CAPACITY CHECK-IN -->
+      <div class="restore-card" style="margin-bottom:16px;">
+        <div class="restore-title">🟢 Daily Capacity Check-In</div>
+        <div style="font-size:12px;color:var(--card-muted);margin-bottom:14px;">Start here every day. How is your body today?</div>
+        <div id="home-capacity-result" style="display:none;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:10px;background:#f5f0ff;border-radius:10px;padding:12px;">
+            <div id="home-capacity-emoji" style="font-size:24px;"></div>
+            <div>
+              <div id="home-capacity-level" style="font-family:'Bebas Neue';font-size:20px;letter-spacing:0.04em;"></div>
+              <div id="home-capacity-note" style="font-size:11px;color:#4a3d5c;"></div>
+            </div>
+          </div>
+        </div>
+        <div id="home-capacity-buttons" style="display:flex;gap:8px;">
+          <button onclick="quickCapacityCheck('Low')" style="flex:1;padding:12px;border-radius:12px;border:2px solid #ef4444;background:rgba(239,68,68,0.08);color:#ef4444;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🔴<br><span style="font-size:10px;">Low</span></button>
+          <button onclick="quickCapacityCheck('Moderate')" style="flex:1;padding:12px;border-radius:12px;border:2px solid #fbbf24;background:rgba(251,191,36,0.08);color:#b8860b;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🟡<br><span style="font-size:10px;">Moderate</span></button>
+          <button onclick="quickCapacityCheck('High')" style="flex:1;padding:12px;border-radius:12px;border:2px solid #4ade80;background:rgba(74,222,128,0.08);color:#16a34a;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🟢<br><span style="font-size:10px;">High</span></button>
+        </div>
+        <div style="margin-top:10px;text-align:center;">
+          <button onclick="switchTabDirect('capacity')" style="background:transparent;border:none;color:var(--purple);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;">Full capacity check-in →</button>
+        </div>
+      </div>
+
       <!-- HYDRATION TRACKER -->
       <div class="restore-card">
         <div class="restore-title">💧 Hydration Tracker</div>
@@ -1237,19 +1263,8 @@
         </div>
       </div>
 
-      <div class="restore-card">
-        <div class="restore-title">💾 Your Progress Code</div>
-        <div class="restore-desc">Save this code to restore your progress on any device.</div>
-        <div class="restore-code-display" id="restoreCodeDisplay">——————</div>
-        <div class="restore-actions">
-          <button class="btn-sm btn-purple" onclick="copyCode()">Copy Code</button>
-          <button class="btn-sm btn-outline" onclick="showRestoreInput()">Restore</button>
-        </div>
-        <div class="restore-input-row" id="restoreInputRow" style="display:none">
-          <input class="restore-input" id="restoreCodeInput" placeholder="Enter your code" maxlength="8">
-          <button class="btn-sm btn-purple" style="flex:0;padding:10px 16px;" onclick="restoreProgress()">Go</button>
-        </div>
-      </div>
+      <!-- FEATURE-FLAGGED DASHBOARD SECTIONS -->
+      <div id="dashboard-features"></div>
 
       <!-- PROGRESS SUMMARY CARD -->
       <div class="restore-card" style="cursor:pointer;" onclick="switchTabDirect('progress')">
@@ -1551,7 +1566,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCpF4ykT6BCmfNXTR-o5fsdwMqmsLO5VDA",
@@ -1570,10 +1585,35 @@ const db = getFirestore(app);
 const COACH_EMAIL = 'parispassports@gmail.com';
 
 // ── AUTH STATE LISTENER ──
+// ── SESSION TOKEN ──
+// Generate a unique token for this browser session
+const SESSION_TOKEN = Math.random().toString(36).slice(2) + Date.now().toString(36);
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     window.currentUser = user;
     window.isCoach = user.email === COACH_EMAIL;
+
+    // ── SINGLE SESSION ENFORCEMENT ──
+    // Write this session token to Firebase
+    const sessionRef = doc(db, 'sessions', user.uid);
+    await setDoc(sessionRef, {
+      token: SESSION_TOKEN,
+      loginAt: serverTimestamp(),
+      email: user.email
+    });
+
+    // Listen for session changes — if another device logs in, kick this one out
+    const unsubscribeSession = onSnapshot(sessionRef, (snap) => {
+      if (snap.exists() && snap.data().token !== SESSION_TOKEN) {
+        // Another session took over — sign this one out
+        unsubscribeSession();
+        signOut(auth);
+        showSessionKickedOverlay();
+      }
+    });
+
+    window.unsubscribeSession = unsubscribeSession;
 
     // Load user data from Firestore
     const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -1693,13 +1733,36 @@ window.firebaseSignIn = async function() {
 };
 
 window.firebaseSignOut = async function() {
+  // Stop listening to session changes
+  if (window.unsubscribeSession) window.unsubscribeSession();
   await signOut(auth);
   showToast('Signed out successfully.');
 };
 
+function showSessionKickedOverlay() {
+  // Remove any existing overlays
+  const existing = document.getElementById('session-kicked-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'session-kicked-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(30,16,32,0.98);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;';
+  overlay.innerHTML = `
+    <div style="font-size:40px;margin-bottom:16px;">⚠️</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.04em;color:#f5eef8;margin-bottom:12px;">Session Ended</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:#cdc6df;margin-bottom:24px;line-height:1.6;max-width:300px;">Your account was signed in on another device. For security, this session has been ended.</div>
+    <div style="background:#cdc6df;border-radius:16px;padding:16px 20px;margin-bottom:20px;max-width:320px;">
+      <div style="font-size:12px;color:#1e1020;line-height:1.6;">If this wasn't you, please change your password immediately. Each purchase is for one user on one device.</div>
+    </div>
+    <button onclick="location.reload()" style="background:#7c3aed;color:white;border:none;border-radius:100px;padding:14px 32px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign Back In</button>
+  `;
+  document.body.appendChild(overlay);
+}
+
 window.toggleAuthMode = function() {
   const isSignUp = document.getElementById('auth-name-row').style.display !== 'none';
   document.getElementById('auth-name-row').style.display = isSignUp ? 'none' : 'block';
+  document.getElementById('forgot-password-row').style.display = isSignUp ? 'block' : 'none';
   document.getElementById('auth-btn').textContent = isSignUp ? 'Sign In' : 'Create Account';
   document.getElementById('auth-btn').onclick = isSignUp ? window.firebaseSignIn : window.firebaseSignUp;
   document.getElementById('auth-toggle-text').innerHTML = isSignUp
@@ -1709,7 +1772,26 @@ window.toggleAuthMode = function() {
   document.getElementById('auth-error').textContent = '';
 };
 
-// ── COACH ANNOUNCEMENTS ──
+window.forgotPassword = async function() {
+  const email = document.getElementById('auth-email').value.trim();
+  const errorEl = document.getElementById('auth-error');
+
+  if (!email) {
+    errorEl.textContent = 'Please enter your email address first.';
+    errorEl.style.color = '#ef4444';
+    return;
+  }
+
+  try {
+    const { sendPasswordResetEmail } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+    await sendPasswordResetEmail(auth, email);
+    errorEl.textContent = '✓ Password reset email sent! Check your inbox.';
+    errorEl.style.color = '#4ade80';
+  } catch(e) {
+    errorEl.textContent = 'Could not send reset email. Please check your email address.';
+    errorEl.style.color = '#ef4444';
+  }
+};
 window.saveAnnouncement = async function() {
   const text = document.getElementById('coach-announcement-text').value.trim();
   if (!text) return;
@@ -1747,6 +1829,22 @@ setTimeout(window.loadAnnouncement, 2000);
 </script>
 
 <script>
+// ══════════════ FEATURE FLAGS ══════════════
+// Flip any flag from false to true to unlock that feature
+// Upload to GitHub after changing — goes live in 60 seconds
+const FEATURES = {
+  pushNotifications: true,        // LIVE — automated accountability reminders
+  testimonialPrompt: false,       // V2 — auto-collect social proof at Week 4
+  capacityTrendChart: false,      // V2 — visual nervous system pattern graph
+  coachDashboard: false,          // V2 — see all client data as coach
+  strengthLog: false,             // V2 — track weights used each session
+  mealLog: false,                 // V2 — daily Low/Moderate/High meal confirmation
+  shoppingListCustomizer: false,  // V2 — check off what you have, print what you need
+  consultationScheduler: false,   // V2 — one-tap booking into your calendar
+  milestoneBadges: false,         // V2 — earned badges for completing weeks and PRs
+  communityBoard: false,          // V2 — unlock at 8 purchases
+};
+
 // ══════════════ STATE ══════════════
 let state = {
   startDate: null,
@@ -1778,8 +1876,18 @@ const WEEK_DATA = {
         ]
       },
       { id: "1-3", name: "Day 3 — Rest", detail: "Complete rest • Let your body recover and rebuild", type: "Recovery", videoUrl: "#", exercises: [] },
-      { id: "1-4", name: "Day 4 — Mobility & Recovery", detail: "Nervous system reset • Active rest", type: "Recovery", videoUrl: "#", exercises: [] },
-      { id: "1-5", name: "Day 5 — Full Body", detail: "Compound movements • Full integration", type: "Training", videoUrl: "#", exercises: [] },
+      { id: "1-4", name: "Day 4 — Mobility & Recovery", detail: "Nervous system reset • Active rest", type: "Recovery", videoUrl: "#", exercises: [
+          { name: "Guided Mobility Session", sets: "2-3", reps: "Full circuit", rest: "1 min", url: "https://youtu.be/ImH1apjBv3Y" }
+        ]
+      },
+      { id: "1-5", name: "Day 5 — Full Body", detail: "Compound movements • Full integration", type: "Training", videoUrl: "#", exercises: [
+          { name: "Step-ups", sets: "2-3", reps: "8-10", rest: "30s", url: "https://youtu.be/dcJDWNqA8lE" },
+          { name: "DB Hammer Curl", sets: "2-3", reps: "8-10", rest: "30s", url: "https://youtu.be/1yxunTmnDDM" },
+          { name: "Tempo Squat", sets: "2-3", reps: "8-10", rest: "30s", url: "https://youtu.be/P7p8AS4SjIU" },
+          { name: "Bridge", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/R2YauNBKxgQ" },
+          { name: "Dead Bug", sets: "2-3", reps: "8", rest: "30s", url: "https://youtu.be/KWp7f0ElR5I" }
+        ]
+      },
       { id: "1-6", name: "Day 6 — Rest", detail: "Complete rest • Honor your output this week", type: "Recovery", videoUrl: "#", exercises: [] },
       { id: "1-7", name: "Day 7 — Rest", detail: "Complete rest • Prepare for the week ahead", type: "Recovery", videoUrl: "#", exercises: [] }
     ],
@@ -1852,6 +1960,12 @@ function init() {
   updateHomeProgressSummary();
   updateStreak();
   initHydration();
+  initHomeCapacity();
+  if (FEATURES.pushNotifications) {
+    initPushNotifications();
+    scheduleDailyReminders();
+    checkSpecialNotifications();
+  }
   // Personalize greeting
   if (state.clientName) {
     const el = document.getElementById('greeting-name');
@@ -1942,7 +2056,7 @@ function getCurrentWeek() {
 
 // ══════════════ DASHBOARD ══════════════
 function updateDashboard() {
-  const total = 15; // 3 training days wk1 + 4 wk2 + 4 wk3 + 5 wk4 = actual training days
+  const total = 15;
   const completed = Object.values(state.completedWorkouts).filter(Boolean).length;
   const pct = Math.round((completed / total) * 100);
   const days = getDaysSinceStart();
@@ -1951,7 +2065,20 @@ function updateDashboard() {
   document.getElementById('overallBar').style.width = pct + '%';
   document.getElementById('statDays').textContent = days;
   document.getElementById('statWorkouts').textContent = completed;
-  document.getElementById('statWeek').textContent = getCurrentWeek();
+  document.getElementById('statStreak').textContent = state.streak || 1;
+
+  // Render feature-flagged dashboard sections
+  const featuresEl = document.getElementById('dashboard-features');
+  if (featuresEl) {
+    featuresEl.innerHTML =
+      renderCapacityTrendChart() +
+      renderMealLog() +
+      (FEATURES.communityBoard ? renderCommunityBoard() : '');
+  }
+
+  // Check milestones and testimonial
+  if (FEATURES.milestoneBadges) checkMilestones();
+  if (FEATURES.testimonialPrompt) checkTestimonialPrompt();
 }
 
 // ══════════════ NAVIGATION ══════════════
@@ -2060,7 +2187,11 @@ function openWeek(week) {
     html += `
       <div class="journal-card">
         <div class="journal-prompt">${prompt}</div>
-        <textarea class="journal-textarea" placeholder="Write here..." onblur="saveJournal('${key}', this.value)">${saved}</textarea>
+        <textarea class="journal-textarea" id="journal-${key}" placeholder="Write here...">${saved}</textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+          <span id="saved-indicator-${key}" style="font-size:11px;color:var(--faint);">Tap Save when done</span>
+          <button onclick="saveJournalEntry('${key}')" style="background:var(--purple);color:white;border:none;border-radius:100px;padding:6px 18px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Save ✓</button>
+        </div>
       </div>
     `;
   });
@@ -2071,8 +2202,10 @@ function openWeek(week) {
         <div class="cta-tag">✦ You've Done The Work</div>
         <div class="cta-title">Ready to go <em>deeper</em>?</div>
         <div class="cta-desc">You've spent 4 weeks proving what's possible. The 1:1 Mentorship is where we personalize everything — your nervous system, your progression, your life. This is where women transform.</div>
-        <button class="cta-btn" onclick="showToast('Redirecting to consultation booking...')">Book Your Free Consultation</button>
+        <button class="cta-btn" onclick="${FEATURES.consultationScheduler ? "window.open('YOUR_BOOKING_LINK_HERE','_blank')" : "showToast('Consultation booking coming soon!')"}">Book Your Free Consultation</button>
       </div>
+      ${FEATURES.testimonialPrompt ? '' : ''}
+      ${renderConsultationScheduler()}
     `;
   }
 
@@ -2176,6 +2309,214 @@ function saveJournal(key, val) {
   saveState();
 }
 
+function saveJournalEntry(key) {
+  // Try to get value from textarea by id
+  const ta = document.getElementById('journal-' + key) || document.getElementById('daily-journal-' + key);
+  const val = ta ? ta.value : '';
+  state.journalEntries[key] = val;
+  saveState();
+  // Show saved confirmation
+  const indicator = document.getElementById('saved-indicator-' + key);
+  if (indicator) {
+    indicator.textContent = '✓ Saved';
+    indicator.style.color = '#4ade80';
+    setTimeout(() => {
+      indicator.textContent = 'Tap Save when done';
+      indicator.style.color = 'var(--faint)';
+    }, 2500);
+  }
+  showToast('Journal entry saved ✓');
+}
+
+// ══════════════ FEATURE FLAG RENDERERS ══════════════
+
+function renderFeatureSection(featureKey, html) {
+  // Only renders if feature flag is true
+  if (!FEATURES[featureKey]) return '';
+  return html;
+}
+
+// ── CAPACITY TREND CHART ──
+function renderCapacityTrendChart() {
+  if (!FEATURES.capacityTrendChart) return '';
+  const history = state.capacityHistory || [];
+  if (history.length === 0) return '';
+  return `
+    <div class="restore-card" style="margin-bottom:20px;">
+      <div class="restore-title">📈 Capacity Trend</div>
+      <div style="display:flex;align-items:flex-end;gap:4px;height:60px;margin-top:10px;">
+        ${history.slice(-14).map(entry => {
+          const color = entry.level === 'High' ? '#4ade80' : entry.level === 'Moderate' ? '#fbbf24' : '#ef4444';
+          const height = entry.level === 'High' ? '100%' : entry.level === 'Moderate' ? '65%' : '30%';
+          return `<div style="flex:1;background:${color};border-radius:3px 3px 0 0;height:${height};opacity:0.8;" title="${entry.date}: ${entry.level}"></div>`;
+        }).join('')}
+      </div>
+      <div style="font-size:10px;color:var(--card-muted);margin-top:6px;text-align:center;">Last 14 days — 🟢 High 🟡 Moderate 🔴 Low</div>
+    </div>
+  `;
+}
+
+// ── STRENGTH LOG ──
+function renderStrengthLog(dayId, exercises) {
+  if (!FEATURES.strengthLog || !exercises || exercises.length === 0) return '';
+  const logs = state.strengthLogs || {};
+  return `
+    <div style="margin-top:12px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.2);border-radius:12px;padding:12px;">
+      <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--purple-light);font-weight:600;margin-bottom:10px;">💪 Strength Log</div>
+      ${exercises.map(ex => {
+        const logKey = dayId + '-' + ex.name.replace(/\s/g, '');
+        const saved = logs[logKey] || '';
+        return `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span style="font-size:11px;color:var(--white);flex:1;">${ex.name}</span>
+            <input type="text" placeholder="Weight used" value="${saved}"
+              onchange="saveStrengthLog('${logKey}', this.value)"
+              style="width:90px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:11px;color:var(--white);outline:none;text-align:center;" />
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function saveStrengthLog(key, val) {
+  if (!state.strengthLogs) state.strengthLogs = {};
+  state.strengthLogs[key] = val;
+  saveState();
+  showToast('Weight logged ✓');
+}
+
+// ── MEAL LOG ──
+function renderMealLog() {
+  if (!FEATURES.mealLog) return '';
+  const today = new Date().toDateString();
+  const saved = state.mealLogs && state.mealLogs[today] || '';
+  return `
+    <div class="restore-card" style="margin-bottom:16px;">
+      <div class="restore-title">🍽️ Today's Meal Log</div>
+      <div style="font-size:12px;color:var(--card-muted);margin-bottom:12px;">Which carb day did you follow today?</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button onclick="saveMealLog('Low')" style="flex:1;padding:10px;border-radius:10px;border:2px solid ${saved==='Low'?'#ef4444':'var(--border)'};background:${saved==='Low'?'rgba(239,68,68,0.1)':'transparent'};color:${saved==='Low'?'#ef4444':'var(--card-muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🔴 Low</button>
+        <button onclick="saveMealLog('Moderate')" style="flex:1;padding:10px;border-radius:10px;border:2px solid ${saved==='Moderate'?'#fbbf24':'var(--border)'};background:${saved==='Moderate'?'rgba(251,191,36,0.1)':'transparent'};color:${saved==='Moderate'?'#fbbf24':'var(--card-muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🟡 Moderate</button>
+        <button onclick="saveMealLog('High')" style="flex:1;padding:10px;border-radius:10px;border:2px solid ${saved==='High'?'#4ade80':'var(--border)'};background:${saved==='High'?'rgba(74,222,128,0.1)':'transparent'};color:${saved==='High'?'#4ade80':'var(--card-muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🟢 High</button>
+      </div>
+      ${saved ? `<div style="font-size:11px;color:#4ade80;text-align:center;">✓ ${saved} Carb Day logged</div>` : ''}
+    </div>
+  `;
+}
+
+function saveMealLog(level) {
+  const today = new Date().toDateString();
+  if (!state.mealLogs) state.mealLogs = {};
+  state.mealLogs[today] = level;
+  saveState();
+  showToast(`${level} Carb Day logged ✓`);
+  renderGuide();
+}
+
+// ── MILESTONE BADGES ──
+function checkMilestones() {
+  if (!FEATURES.milestoneBadges) return;
+  const completed = Object.values(state.completedWorkouts).filter(Boolean).length;
+  const badges = state.badges || [];
+
+  const milestones = [
+    { id: 'first-workout', label: '🏅 First Workout Complete', condition: completed >= 1 },
+    { id: 'week1-done', label: '🏆 Week 1 Complete', condition: WEEK_DATA[1].days.filter(d=>d.type==='Training').every(d=>state.completedWorkouts[d.id]) },
+    { id: 'week2-done', label: '🏆 Week 2 Complete', condition: WEEK_DATA[2].days.filter(d=>d.type==='Training').every(d=>state.completedWorkouts[d.id]) },
+    { id: 'week3-done', label: '🏆 Week 3 Complete', condition: WEEK_DATA[3].days.filter(d=>d.type==='Training').every(d=>state.completedWorkouts[d.id]) },
+    { id: 'week4-done', label: '🎖️ Program Complete!', condition: WEEK_DATA[4].days.filter(d=>d.type==='Training').every(d=>state.completedWorkouts[d.id]) },
+    { id: 'streak7', label: '🔥 7-Day Streak', condition: (state.streak || 0) >= 7 },
+    { id: 'hydration-goal', label: '💧 Hydration Goal Reached', condition: (state.waterOz || 0) >= 80 },
+  ];
+
+  milestones.forEach(m => {
+    if (m.condition && !badges.includes(m.id)) {
+      badges.push(m.id);
+      state.badges = badges;
+      saveState();
+      showToast(m.label + ' — Badge earned! 🎉');
+    }
+  });
+}
+
+// ── TESTIMONIAL PROMPT ──
+function checkTestimonialPrompt() {
+  if (!FEATURES.testimonialPrompt) return;
+  const allWeek4Done = WEEK_DATA[4].days.filter(d => d.type === 'Training').every(d => state.completedWorkouts[d.id]);
+  if (!allWeek4Done || state.testimonialShown) return;
+
+  state.testimonialShown = true;
+  saveState();
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(30,16,32,0.97);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;';
+  overlay.innerHTML = `
+    <div style="font-size:40px;margin-bottom:16px;">🎖️</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.04em;color:#f5eef8;margin-bottom:8px;">You Did It.</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#cdc6df;margin-bottom:24px;line-height:1.6;max-width:320px;">4 weeks. Real progression. No all-or-nothing. You showed up and you rose.</div>
+    <div style="background:#cdc6df;border-radius:16px;padding:20px;width:100%;max-width:380px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:600;color:#1e1020;margin-bottom:10px;">Share your experience — your words help other women find this program.</div>
+      <textarea id="testimonial-text" placeholder="Write your experience here..." style="width:100%;background:white;border:1px solid #b8b0d0;border-radius:10px;padding:12px;font-size:13px;color:#1e1020;min-height:80px;outline:none;box-sizing:border-box;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
+      <button onclick="saveTestimonial()" style="width:100%;background:#7c3aed;color:white;border:none;border-radius:100px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px;font-family:'DM Sans',sans-serif;">Submit My Experience</button>
+    </div>
+    <button onclick="this.parentElement.remove()" style="background:transparent;border:1px solid #4a3060;color:#cdc6df;border-radius:100px;padding:10px 24px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Maybe Later</button>
+  `;
+  document.body.appendChild(overlay);
+}
+
+async function saveTestimonial() {
+  const text = document.getElementById('testimonial-text').value.trim();
+  if (!text) return;
+  state.testimonial = text;
+  state.testimonialSubmitted = true;
+  saveState();
+  // Save to Firebase if available
+  if (window.currentUser && window.db) {
+    try {
+      const { setDoc, doc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      await setDoc(doc(window.db, 'testimonials', window.currentUser.uid), {
+        text, email: window.currentUser.email, submittedAt: serverTimestamp()
+      });
+    } catch(e) {}
+  }
+  document.querySelector('[style*="position:fixed;inset:0;background:rgba(30,16,32,0.97)"]')?.remove();
+  showToast('Thank you! Your experience has been shared. 🙏');
+}
+
+// ── CONSULTATION SCHEDULER ──
+function renderConsultationScheduler() {
+  if (!FEATURES.consultationScheduler) return '';
+  return `
+    <div class="mentorship-cta" style="margin-top:16px;">
+      <div class="cta-tag">✦ Ready to Go Deeper?</div>
+      <div class="cta-title">Book Your <em>Free Consultation</em></div>
+      <div class="cta-desc">One conversation could change everything. Let's talk about what's possible for you in the 1:1 Mentorship.</div>
+      <button class="cta-btn" onclick="window.open('YOUR_BOOKING_LINK_HERE','_blank')">Book My Free Consultation →</button>
+    </div>
+  `;
+}
+
+// ── COMMUNITY BOARD ──
+function renderCommunityBoard() {
+  if (!FEATURES.communityBoard) return '';
+  return `
+    <div class="restore-card" style="margin-bottom:16px;">
+      <div class="restore-title">🏆 Community Wins</div>
+      <div style="font-size:12px;color:var(--card-muted);margin-bottom:12px;">Share a win with your fellow risers.</div>
+      <textarea id="community-post" placeholder="Share your win..." style="width:100%;background:#f5f0ff;border:1px solid #e0daea;border-radius:10px;padding:10px;font-size:13px;color:#1e1020;min-height:60px;outline:none;box-sizing:border-box;resize:none;font-family:'DM Sans',sans-serif;margin-bottom:8px;"></textarea>
+      <button onclick="postCommunityWin()" style="background:var(--purple);color:white;border:none;border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Post Win 🏆</button>
+    </div>
+  `;
+}
+
+async function postCommunityWin() {
+  const text = document.getElementById('community-post').value.trim();
+  if (!text || !window.currentUser) return;
+  showToast('Win posted! Keep rising. 🏆');
+  document.getElementById('community-post').value = '';
+}
+
 // ══════════════ CAPACITY CHECK ══════════════
 function selectScale(qId, val) {
   capacityAnswers[qId] = val;
@@ -2200,16 +2541,26 @@ function calculateCapacity() {
     level.className = 'result-level high';
     guidance.innerHTML = 'Your body is ready. Train with full intention today — push for the progression targets in your current week. This is a green light.<br><br><strong style="color:#4ade80;">🟢 Today\'s Nutrition: High Carb Day</strong><br><span style="font-size:12px;color:var(--muted);">220–300g carbs. Fuel your output — oatmeal, rice, potatoes, fruit.</span>';
     state.lastCapacity = 'High';
+  // Track capacity history for trend chart
+  if (!state.capacityHistory) state.capacityHistory = [];
+  state.capacityHistory.push({ date: new Date().toDateString(), level: 'High' });
+  if (state.capacityHistory.length > 28) state.capacityHistory = state.capacityHistory.slice(-28);
   } else if (avg >= 2.5) {
     level.textContent = 'MODERATE';
     level.className = 'result-level medium';
     guidance.innerHTML = 'You have capacity to train — move with intention and listen closely. Adjust load if needed. Completing the work matters more than the number on the bar.<br><br><strong style="color:#fbbf24;">🟡 Today\'s Nutrition: Moderate Carb Day</strong><br><span style="font-size:12px;color:var(--muted);">130–200g carbs. Balanced plate — protein + carb + fat + vegetables.</span>';
     state.lastCapacity = 'Moderate';
+  if (!state.capacityHistory) state.capacityHistory = [];
+  state.capacityHistory.push({ date: new Date().toDateString(), level: 'Moderate' });
+  if (state.capacityHistory.length > 28) state.capacityHistory = state.capacityHistory.slice(-28);
   } else {
     level.textContent = 'LOW';
     level.className = 'result-level low';
     guidance.innerHTML = 'Your nervous system needs support today. Choose movement that restores — mobility, a walk, or light activity. Honoring low capacity IS strength training.<br><br><strong style="color:#ef4444;">🔴 Today\'s Nutrition: Low Carb Day</strong><br><span style="font-size:12px;color:var(--muted);">70–120g carbs. Protein + non-starchy veggies. Keep meals steady and supportive.</span>';
     state.lastCapacity = 'Low';
+  if (!state.capacityHistory) state.capacityHistory = [];
+  state.capacityHistory.push({ date: new Date().toDateString(), level: 'Low' });
+  if (state.capacityHistory.length > 28) state.capacityHistory = state.capacityHistory.slice(-28);
   }
   saveState();
 
@@ -2357,11 +2708,15 @@ function buildDailyJournal(week) {
       <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:#1e1020;line-height:1.6;margin-bottom:12px;">${todayPrompt}</div>
       <textarea
         class="journal-textarea"
+        id="daily-journal-${journalKey}"
         placeholder="Write here..."
-        onblur="saveJournal('${journalKey}', this.value)"
         style="min-height:100px;"
       >${savedEntry}</textarea>
-      <div style="font-size:11px;color:var(--faint);margin-top:6px;">Your entry saves automatically when you tap away.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+        <span id="saved-indicator-${journalKey}" style="font-size:11px;color:var(--faint);">Tap Save when done</span>
+        <button onclick="saveJournalEntry('${journalKey}')" style="background:var(--purple);color:white;border:none;border-radius:100px;padding:6px 18px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Save ✓</button>
+      </div>
+      <div style="font-size:11px;color:var(--faint);margin-top:4px;">Your entry saves to your account automatically.</div>
     </div>
   `;
 
@@ -2584,35 +2939,54 @@ function printGuide(week) {
         <div>
           <div style="font-size:22px;font-weight:bold;letter-spacing:0.04em;">REBUILD & RISE</div>
           <div style="font-size:11px;color:#4a3d5c;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">Week ${week} — ${data.name}</div>
-          <div style="font-size:10px;color:#888;margin-top:2px;">Coach Paris Simone</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">Coach Paris Simone | Stress-Integrated Strength System™</div>
         </div>
         <button onclick="document.getElementById('guide-overlay').remove()" style="background:#1e1020;color:white;border:none;border-radius:100px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;">✕ Close</button>
       </div>
 
-      <div style="font-style:italic;font-size:13px;color:#4a3d5c;margin-bottom:8px;line-height:1.6;">${data.goal}</div>
-      <div style="font-size:11px;color:#888;margin-bottom:4px;">Use your phone's share button → "Print" to save as PDF.</div>
+      <div style="font-style:italic;font-size:13px;color:#4a3d5c;margin-bottom:4px;line-height:1.6;">${data.goal}</div>
+      <div style="font-size:11px;color:#888;margin-bottom:20px;">Use your phone's share button → "Print" to save as PDF.</div>
 
-      <div style="font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1e1020;padding-bottom:5px;margin:20px 0 12px;">Training Days</div>
+      <div style="font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1e1020;padding-bottom:5px;margin-bottom:14px;">Training Days</div>
+
       ${data.days.map((d, i) => `
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #eee;">
-          <div style="width:14px;height:14px;border:1.5px solid #1e1020;border-radius:2px;flex-shrink:0;margin-top:2px;"></div>
-          <div>
-            <div style="font-size:13px;font-weight:600;">${d.name}</div>
-            <div style="font-size:11px;color:#4a3d5c;margin-top:2px;">${d.detail}</div>
+        <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #eee;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="width:14px;height:14px;border:1.5px solid #1e1020;border-radius:2px;flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:13px;font-weight:700;">${d.name}</div>
+              <div style="font-size:11px;color:#4a3d5c;">${d.detail}</div>
+            </div>
+            <div style="margin-left:auto;font-size:10px;font-weight:600;color:${d.type==='Recovery'?'#4ade80':'#7c3aed'};text-transform:uppercase;letter-spacing:0.08em;">${d.type}</div>
           </div>
+          ${d.exercises && d.exercises.length > 0 ? `
+            <div style="margin-left:22px;">
+              ${d.exercises.map(ex => `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f9f7fc;border-radius:8px;margin-bottom:4px;">
+                  <span style="font-size:12px;color:#1e1020;font-weight:500;">${ex.name}</span>
+                  <span style="font-size:11px;color:#4a3d5c;white-space:nowrap;margin-left:8px;">${ex.sets} sets · ${ex.reps} reps · ${ex.rest} rest</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : d.type === 'Recovery' ? `
+            <div style="margin-left:22px;font-size:12px;color:#888;font-style:italic;">Active recovery — honor your nervous system today.</div>
+          ` : `
+            <div style="margin-left:22px;font-size:12px;color:#888;font-style:italic;">Exercises coming soon — check the app for updates.</div>
+          `}
         </div>
       `).join('')}
 
       <div style="font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1e1020;padding-bottom:5px;margin:24px 0 12px;">Weekly Journal Prompts</div>
       ${data.journal.map(p => `
         <div style="padding:12px 0;border-bottom:1px solid #eee;">
-          <div style="font-style:italic;font-size:13px;color:#1e1020;margin-bottom:8px;">${p}</div>
-          <div style="height:48px;border-bottom:1px solid #ccc;"></div>
+          <div style="font-style:italic;font-size:13px;color:#1e1020;margin-bottom:10px;">${p}</div>
+          <div style="height:40px;border-bottom:1px solid #ccc;"></div>
+          <div style="height:40px;border-bottom:1px solid #ccc;"></div>
         </div>
       `).join('')}
 
       <div style="margin-top:24px;padding-top:12px;border-top:1px solid #ccc;font-size:10px;color:#aaa;text-align:center;">
-        parispassports.github.io/rebuild-and-rise • Rebuild & Rise by Coach Paris Simone
+        coachparis.github.io/Rebuild-and-rise • Rebuild & Rise by Coach Paris Simone
       </div>
     </div>
   `;
@@ -2874,7 +3248,210 @@ function renderProgress() {
   updateHomeProgressSummary();
 }
 
-// ══════════════ REST TIMER ══════════════
+// ══════════════ QUICK CAPACITY CHECK (HOME) ══════════════
+function quickCapacityCheck(level) {
+  const today = new Date().toDateString();
+  state.lastCapacity = level;
+  state.lastCapacityDate = today;
+
+  // Track history
+  if (!state.capacityHistory) state.capacityHistory = [];
+  state.capacityHistory.push({ date: today, level });
+  if (state.capacityHistory.length > 28) state.capacityHistory = state.capacityHistory.slice(-28);
+  saveState();
+
+  const configs = {
+    High: { emoji: '🟢', color: '#16a34a', note: 'High Carb Day — fuel your training today.' },
+    Moderate: { emoji: '🟡', color: '#b8860b', note: 'Moderate Carb Day — balanced plate today.' },
+    Low: { emoji: '🔴', color: '#ef4444', note: 'Low Carb Day — restore and support your system.' }
+  };
+  const c = configs[level];
+
+  document.getElementById('home-capacity-emoji').textContent = c.emoji;
+  document.getElementById('home-capacity-level').textContent = level + ' Capacity';
+  document.getElementById('home-capacity-level').style.color = c.color;
+  document.getElementById('home-capacity-note').textContent = c.note;
+  document.getElementById('home-capacity-result').style.display = 'block';
+  document.getElementById('home-capacity-buttons').style.display = 'none';
+
+  showToast(`${level} capacity logged ✓`);
+}
+
+function initHomeCapacity() {
+  const today = new Date().toDateString();
+  if (state.lastCapacityDate === today && state.lastCapacity) {
+    quickCapacityCheck(state.lastCapacity);
+  }
+}
+
+// ══════════════ PUSH NOTIFICATIONS ══════════════
+async function initPushNotifications() {
+  if (!FEATURES.pushNotifications) return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+
+  if (Notification.permission === 'default') {
+    // Ask permission with a friendly prompt first
+    showNotificationPrompt();
+  } else if (Notification.permission === 'granted') {
+    scheduleDailyReminders();
+  }
+}
+
+function showNotificationPrompt() {
+  const existing = document.getElementById('notif-prompt');
+  if (existing || state.notifPromptShown) return;
+  state.notifPromptShown = true;
+  saveState();
+
+  const prompt = document.createElement('div');
+  prompt.id = 'notif-prompt';
+  prompt.style.cssText = 'position:fixed;bottom:80px;left:16px;right:16px;background:#1e1020;border:1px solid #7c3aed;border-radius:16px;padding:16px;z-index:9000;';
+  prompt.innerHTML = `
+    <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#9d5cf6;font-weight:600;margin-bottom:6px;">🔔 Stay Accountable</div>
+    <div style="font-size:13px;color:#f5eef8;margin-bottom:12px;line-height:1.5;">Get daily reminders for your capacity check-in, workouts, and hydration goal.</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="enableNotifications()" style="flex:1;background:#7c3aed;color:white;border:none;border-radius:100px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Enable Reminders</button>
+      <button onclick="document.getElementById('notif-prompt').remove()" style="flex:0;background:transparent;border:1px solid #4a3060;color:#cdc6df;border-radius:100px;padding:10px 16px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Later</button>
+    </div>
+  `;
+  document.body.appendChild(prompt);
+
+  // Auto dismiss after 8 seconds
+  setTimeout(() => prompt.remove(), 8000);
+}
+
+async function enableNotifications() {
+  const permission = await Notification.requestPermission();
+  document.getElementById('notif-prompt')?.remove();
+
+  if (permission === 'granted') {
+    showToast('Reminders enabled ✓ We\'ll keep you on track 🔔');
+    state.notificationsEnabled = true;
+    saveState();
+    scheduleDailyReminders();
+  } else {
+    showToast('You can enable reminders anytime in your browser settings.');
+  }
+}
+
+function scheduleDailyReminders() {
+  if (!state.notificationsEnabled) return;
+
+  const now = new Date();
+  const today = now.toDateString();
+
+  // Schedule 8am morning reminder
+  scheduleNotificationAt(8, 0, '🌅 Good morning!', getMorningMessage(), today + '-morning');
+
+  // Schedule 6pm evening reminder
+  scheduleNotificationAt(18, 0, '🌆 Evening check-in', getEveningMessage(), today + '-evening');
+}
+
+function scheduleNotificationAt(hour, minute, title, body, id) {
+  const now = new Date();
+  const target = new Date();
+  target.setHours(hour, minute, 0, 0);
+
+  // If time already passed today skip
+  if (target <= now) return;
+
+  const delay = target.getTime() - now.getTime();
+  const alreadyShown = state.shownNotifications && state.shownNotifications.includes(id);
+  if (alreadyShown) return;
+
+  setTimeout(() => {
+    if (Notification.permission === 'granted') {
+      new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        tag: id,
+      });
+      if (!state.shownNotifications) state.shownNotifications = [];
+      state.shownNotifications.push(id);
+      // Keep only last 14 days of notification history
+      if (state.shownNotifications.length > 28) state.shownNotifications = state.shownNotifications.slice(-28);
+      saveState();
+    }
+  }, delay);
+}
+
+function getMorningMessage() {
+  const today = new Date().toDateString();
+  const capacityDone = state.lastCapacityDate === today;
+  const days = getDaysSinceStart();
+
+  if (!capacityDone) return 'Start with your capacity check-in — it sets the tone for your whole day. 🟢🟡🔴';
+
+  const week = getCurrentWeek();
+  const data = WEEK_DATA[week];
+  const nextTraining = data?.days.find(d => d.type === 'Training' && !state.completedWorkouts[d.id]);
+  if (nextTraining && isDayUnlocked(week, data.days.indexOf(nextTraining))) {
+    return `Your next workout is ready — ${nextTraining.name}. Open the app and let's build. 💪`;
+  }
+  return `Day ${days + 1} of your Rebuild & Rise journey. Keep showing up. 🔥`;
+}
+
+function getEveningMessage() {
+  const today = new Date().toDateString();
+  const capacityDone = state.lastCapacityDate === today;
+  const waterOz = state.waterOz || 0;
+
+  if (!capacityDone) return 'You haven\'t checked your capacity today. It only takes 30 seconds — open the app now. 🟢';
+  if (waterOz < 80) return `Hydration check — you\'ve logged ${waterOz}oz today. Goal is 80-100oz. Keep drinking! 💧`;
+  return 'Great work today. Rest well — your nervous system is rebuilding. See you tomorrow. 🌙';
+}
+
+// Special event notifications
+function checkSpecialNotifications() {
+  if (!FEATURES.pushNotifications || !state.notificationsEnabled) return;
+  if (Notification.permission !== 'granted') return;
+
+  const days = getDaysSinceStart();
+  const today = new Date().toDateString();
+
+  // Day 14 — measurement reminder
+  if (days === 14 && (!state.shownNotifications || !state.shownNotifications.includes('day14-measure'))) {
+    new Notification('📏 Week 2 Check-In', {
+      body: 'It\'s Day 14 — time to log your measurements and see how far you\'ve come. Open the Progress tab.',
+      tag: 'day14-measure'
+    });
+    if (!state.shownNotifications) state.shownNotifications = [];
+    state.shownNotifications.push('day14-measure');
+    saveState();
+  }
+
+  // Day 28 — final check-in
+  if (days === 28 && (!state.shownNotifications || !state.shownNotifications.includes('day28-final'))) {
+    new Notification('🎖️ Program Complete!', {
+      body: 'You did it! Log your final measurements and take your post-program photos in 3 days. You\'ve earned this.',
+      tag: 'day28-final'
+    });
+    if (!state.shownNotifications) state.shownNotifications = [];
+    state.shownNotifications.push('day28-final');
+    saveState();
+  }
+
+  // Workout unlocked notification
+  const week = getCurrentWeek();
+  const data = WEEK_DATA[week];
+  if (data) {
+    data.days.forEach((day, i) => {
+      if (day.type === 'Training' && !state.completedWorkouts[day.id] && isDayUnlocked(week, i)) {
+        const notifId = 'unlocked-' + day.id + '-' + today;
+        if (!state.shownNotifications || !state.shownNotifications.includes(notifId)) {
+          new Notification('💪 Workout Unlocked!', {
+            body: `${day.name} is ready for you. Open Rebuild & Rise and let\'s build.`,
+            tag: notifId
+          });
+          if (!state.shownNotifications) state.shownNotifications = [];
+          state.shownNotifications.push(notifId);
+          saveState();
+        }
+      }
+    });
+  }
+}
 let timerInterval = null;
 let timerSeconds = 30;
 let timerRunning = false;
