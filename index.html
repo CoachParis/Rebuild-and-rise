@@ -1624,7 +1624,7 @@ onAuthStateChanged(auth, async (user) => {
         const localSaved = localStorage.getItem('rnr-state');
         const localState = localSaved ? JSON.parse(localSaved) : {};
         // Cloud takes priority for completion data
-        window.state = { ...localState, ...cloudState };
+        window.state = { ...cloudState, ...localState };
         localStorage.setItem('rnr-state', JSON.stringify(window.state));
       }
     } else {
