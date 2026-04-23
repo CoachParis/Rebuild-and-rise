@@ -1688,7 +1688,7 @@ window.firebaseSignUp = async function() {
 
   try {
     document.getElementById('auth-btn').textContent = 'Creating account...';
-    await createUserWithEmailAndPassword(auth, email, password);
+    const approved = await getDoc(doc(db, 'approvedEmails', email.toLowerCase())); if (!approved.exists()) { errorEl.textContent = 'Access denied. Please purchase the program to create an account.'; document.getElementById('auth-btn').textContent = 'Create Account'; return; } await createUserWithEmailAndPassword(auth, email, password);
     // Store name in state
     if (window.state) window.state.clientName = name; else localStorage.setItem('rnr-pending-name', name);
     errorEl.textContent = '';
