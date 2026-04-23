@@ -1690,7 +1690,7 @@ window.firebaseSignUp = async function() {
     document.getElementById('auth-btn').textContent = 'Creating account...';
     await createUserWithEmailAndPassword(auth, email, password);
     // Store name in state
-    window.state.clientName = name;
+    if (window.state) window.state.clientName = name; else localStorage.setItem('rnr-pending-name', name);
     errorEl.textContent = '';
   } catch(e) {
     console.error('Signup error:', e);
