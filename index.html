@@ -1984,7 +1984,7 @@ function loadState() {
   }
 }
 
-function saveState() {
+function saveState() {     window.state = state;
   localStorage.setItem('rnr-state', JSON.stringify(state));
   // Also save to cloud if logged in
   if (window.saveToCloud) window.saveToCloud();
