@@ -1662,7 +1662,7 @@ window.saveToCloud = async function() {
   if (!window.currentUser) return;
   try {
     await updateDoc(doc(db, 'users', window.currentUser.uid), {
-      state: window.state,
+      state: typeof state !== 'undefined' ? state : window.state,
       lastUpdated: serverTimestamp()
     });
   } catch(e) {
