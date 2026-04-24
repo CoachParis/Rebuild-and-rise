@@ -1643,7 +1643,7 @@ onAuthStateChanged(auth, async (user) => {
 
     // Hide login, show app
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('welcome').classList.add('active');
+    if (userDoc && userDoc.exists()) { document.getElementById('app').classList.add('active'); init(); } else { document.getElementById('welcome').classList.add('active'); }
     document.getElementById('user-email-display').textContent = user.email;
 
     // Show coach badge if coach
