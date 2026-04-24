@@ -1817,6 +1817,17 @@ window.loadAnnouncement = async function() {
     const snap = await getDoc(doc(db, 'announcements', 'latest'));
     if (snap.exists()) {
       const data = snap.data();
+      const announcementId = (data.postedAt && data.postedAt.seconds) ? String(data.postedAt.seconds) : data.text.substring(0, 20);
+      const dismissed = localStorage.getItem('rnr-dismissed-announcement');
+      if (dismissed !== announcementId) {
+        const existing = document.getElementById('announcement-popup');
+        if (existing) existing.remove();
+        const popup = document.createElement('div');
+        popup.id = 'announcement-popup';
+        popup.style.cssText = 'position:fixed;inset:0;background:rgba(30,16,32,0.85);z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;';
+        popup.innerHTML = '<div style="background:white;max-width:420px;width:100%;border-radius:20px;padding:28px;border-left:4px solid #7c3aed;font-family:DM Sans,sans-serif;"><div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#7c3aed;font-weight:700;margin-bottom:12px;">📢 From Coach Paris</div><div style="font-size:15px;color:#1e1020;line-height:1.6;margin-bottom:20px;white-space:pre-wrap;">' + data.text.replace(/</g, '&lt;') + '</div><button onclick="document.getElementById(\'announcement-popup\').remove(); localStorage.setItem(\'rnr-dismissed-announcement\', \'' + announcementId + '\');" style="width:100%;background:#7c3aed;color:white;border:none;border-radius:100px;padding:14px;font-size:13px;font-weight:600;letter-spacing:0.05em;cursor:pointer;font-family:DM Sans,sans-serif;text-transform:uppercase;">Got it ✓</button></div>';
+        document.body.appendChild(popup);
+      }
       const el = document.getElementById('coach-announcement-display');
       if (el) {
         el.style.display = 'block';
