@@ -1636,14 +1636,14 @@ onAuthStateChanged(auth, async (user) => {
       const localState = localSaved ? JSON.parse(localSaved) : {};
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
-        createdAt: serverTimestamp(),         accessExpires: Date.now() + (40 * 86400000),
+        createdAt: serverTimestamp(),         accessExpires: Date.now() + (40 * 86400000),         accessExpires: Date.now() + (40 * 86400000),
         state: localState
       });
     }
 
     // Hide login, show app
     document.getElementById('login-screen').style.display = 'none';
-    const isCoach = user.email === COACH_EMAIL;     let expired = false;     if (userDoc && userDoc.exists() && !isCoach) {       const exp = userDoc.data().accessExpires;       if (exp && Date.now() > exp) expired = true;     }     if (expired) { showAccessExpiredOverlay(user.email); return; }     if (userDoc && userDoc.exists()) { document.getElementById('app').classList.add('active'); init(); } else { document.getElementById('welcome').classList.add('active'); }
+    const isCoach = user.email === COACH_EMAIL;     let expired = false;     if (userDoc && userDoc.exists() && !isCoach) {       const exp = userDoc.data().accessExpires;       if (exp && Date.now() > exp) expired = true;     }     if (expired) { showAccessExpiredOverlay(user.email); return; }     const isCoach = user.email === COACH_EMAIL;     let expired = false;     if (userDoc && userDoc.exists() && !isCoach) {       const exp = userDoc.data().accessExpires;       if (exp && Date.now() > exp) expired = true;     }     if (expired) { showAccessExpiredOverlay(user.email); return; }     if (userDoc && userDoc.exists()) { document.getElementById('app').classList.add('active'); init(); } else { document.getElementById('welcome').classList.add('active'); }
     document.getElementById('user-email-display').textContent = user.email;
 
     // Show coach badge if coach
@@ -1736,6 +1736,24 @@ window.firebaseSignIn = async function() {
 };
 
 window.showAccessExpiredOverlay = function(email) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('login-screen').style.display = 'none';
+  const existing = document.getElementById('expired-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'expired-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#1e1020;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;color:#f5eef8;font-family:DM Sans,sans-serif;';
+  overlay.innerHTML = `
+    <div style="font-size:50px;margin-bottom:16px;">🎉</div>
+    <div style="font-family:Bebas Neue,sans-serif;font-size:42px;letter-spacing:0.04em;margin-bottom:12px;">Your 40 Days Are Done.</div>
+    <div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:18px;color:#cdc6df;margin-bottom:32px;line-height:1.6;max-width:400px;">You showed up for yourself. Now let's talk about what comes next — whether that's deeper 1:1 work or another round of Rebuild & Rise.</div>
+    <a href="https://schedule.fillout.com/t/uFpHY18tTous" target="_blank" style="display:block;background:#7c3aed;color:white;border:none;border-radius:100px;padding:16px 32px;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;margin-bottom:14px;width:280px;">Book a Coaching Call</a>
+    <button onclick="window.firebaseSignOut()" style="background:transparent;border:1px solid #4a3060;color:#cdc6df;border-radius:100px;padding:12px 24px;font-size:12px;cursor:pointer;font-family:DM Sans,sans-serif;">Sign Out</button>
+    <div style="margin-top:32px;font-size:11px;color:#7a6f8a;">Signed in as ${email}</div>
+  `;
+  document.body.appendChild(overlay);
+};
+  window.showAccessExpiredOverlay = function(email) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('login-screen').style.display = 'none';
   const existing = document.getElementById('expired-overlay');
