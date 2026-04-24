@@ -3063,7 +3063,10 @@ function printNeededItems() {
     ${neededHTML}
     <p style="font-size:10px;color:#aaa;margin-top:28px;text-align:center;">parispassports.github.io/rebuild-and-rise</p>
   `;
-  window.print();
+  const ov = document.getElementById('shop-overlay');
+  if (ov) ov.style.display = 'none';
+    window.print();
+    if (ov) ov.style.display = 'block';
 }
 
 function renderShoppingOverlay() {
