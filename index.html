@@ -2848,7 +2848,7 @@ function renderGuide() {
     </div>
 
     <button class="guide-print-btn" onclick="printGuide(${week})">🖨 Save or Print This Week's Guide</button>
-    <button class="guide-print-btn" style="background:#1e1020;margin-top:-10px;" onclick="openShoppingList()">🛒 Shopping List Customizer</button>
+    <button class="guide-print-btn" style="background:#1e1020;margin-top:-10px;" onclick="openShoppingList()">🛒 Shopping List Customizer</button>     <button class="guide-print-btn" style="background:#1e1020;margin-top:-10px;" onclick="openSampleWeek()">📅 Sample Week — Real Meals</button>
 
     <!-- DAILY JOURNAL -->
     ${buildDailyJournal(week)}
@@ -3124,6 +3124,68 @@ function openShoppingList() {
   overlay.style.cssText = 'position:fixed;inset:0;background:white;z-index:9999;overflow-y:auto;padding:24px;font-family:Georgia,serif;color:#1e1020;';
   document.body.appendChild(overlay);
   renderShoppingOverlay();
+}
+
+  // ── SAMPLE WEEK MODAL ──
+function openSampleWeek() {
+  const existing = document.getElementById('sample-week-overlay');
+  if (existing) existing.remove();
+
+  const days = [
+    { day: 'MONDAY', training: 'Lower Body', carb: 'High Carb Day', range: '220–300g carbs', color: '#16a34a',
+      meals: [['Breakfast','Oatmeal with nuts + berries & 2 sausage links or bacon'],['Snack','Pear and berry crumble'],['Lunch','Egg boil or onion boil'],['Snack','Protein smoothie'],['Dinner','Spaghetti or leftovers']] },
+    { day: 'TUESDAY', training: 'Upper Body Push', carb: 'High Carb Day', range: '220–300g carbs', color: '#16a34a',
+      meals: [['Breakfast','BEC/SEC Sandwich or 2 Eggs with 1/2 avocado'],['Snack','Protein Bar (example: One Bar)'],['Lunch','Protein Bowl — Jasmine Rice, Black beans, Ro-tel, Mexican Corn, + protein option (chicken/shrimp/ground turkey/beef)'],['Snack','Sardines'],['Dinner','Honey Garlic Shrimp & Broccoli']] },
+    { day: 'WEDNESDAY', training: 'Rest', carb: 'Low Carb Day', range: '70–120g carbs', color: '#ef4444',
+      meals: [['Breakfast','Egg scramble with spinach & peppers (avocado slices)'],['Snack','Pinwheel turkey & provolone with lettuce'],['Lunch','Large mixed greens salad w/ grilled chicken, salmon, or shrimp (balsamic dressing)'],['Snack','Greek yogurt & mixed berries'],['Dinner','Grilled or blackened protein + non-starchy veggies (broccoli, zucchini)'],['Snack','Whey shake (low carb)']] },
+    { day: 'THURSDAY', training: 'Full Body', carb: 'Moderate Carb Day', range: '~130–200g carbs', color: '#b8860b',
+      meals: [['Breakfast','Eggs with whole grain toast + apple or banana'],['Snack','Protein bar'],['Lunch','Brown rice or quinoa bowl, grilled chicken/fish/turkey, roasted vegetables'],['Dinner','Lean protein (lean beef, fish, chicken) + rice or sweet potato & steamed veggies'],['Snack','Protein low carb shake']] },
+    { day: 'FRIDAY', training: 'Mobility & Recovery', carb: 'Moderate Carb Day', range: '~130–200g carbs', color: '#b8860b',
+      meals: [['Breakfast','Veggie Omelet (2 eggs, spinach, mushrooms, sweet or green pepper, tomato) and Orange'],['Snack','Hummus and 1–2 cups of Celery, carrots and cucumbers'],['Lunch','(2) Tuna Sandwiches or Tuna 1/2 Hoagie Roll'],['Dinner','3–4 oz Non-Fried Fish or Breast & steamed vegetables'],['Snack','Optional Rice Cakes (flavor of choice)']] },
+    { day: 'SATURDAY', training: 'Rest', carb: 'Low Carb Day', range: '70–120g carbs', color: '#ef4444',
+      meals: [['Breakfast','Catalina Crunch Cereal'],['Snack','Whey Protein Shake + banana'],['Lunch','Mediterranean Chicken & Quinoa Bowl'],['Dinner','Smoked Turkey wing, cabbage + plantain'],['Snack','Cantaloupe salad (Honey dew & watermelon or mango)']] },
+    { day: 'SUNDAY', training: 'Rest', carb: 'Low Carb Day', range: '70–120g carbs', color: '#ef4444',
+      meals: [['Breakfast','Protein Shake + Red Apple'],['Snack','Black bean Mango Salad with 1/2 Avocado'],['Lunch','Parmesan/Hot Wings (air fried) with Asparagus & Honey Roasted carrots'],['Dinner','Meal Prep Leftover'],['Snack','Cucumber Salad']] },
+  ];
+
+  const overlay = document.createElement('div');
+  overlay.id = 'sample-week-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:white;z-index:9999;overflow-y:auto;padding:24px;font-family:Georgia,serif;color:#1e1020;';
+
+  overlay.innerHTML = `
+    <div style="max-width:600px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #1e1020;">
+        <div>
+          <div style="font-size:22px;font-weight:bold;letter-spacing:0.04em;">REBUILD & RISE</div>
+          <div style="font-size:11px;color:#4a3d5c;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">7-Day Sample Week</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">Coach Paris Simone</div>
+        </div>
+        <button onclick="document.getElementById('sample-week-overlay').remove()" style="background:#1e1020;color:white;border:none;border-radius:100px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.05em;">✕ Close</button>
+      </div>
+
+      <div style="font-size:12px;color:#4a3d5c;font-style:italic;margin-bottom:20px;line-height:1.6;">A real example of how meals shift across the week to match your training and capacity.</div>
+
+      ${days.map(d => `
+        <div style="border-left:3px solid ${d.color};background:#faf8fd;border-radius:8px;padding:14px 16px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:10px;">
+            <div>
+              <div style="font-family:Georgia,serif;font-weight:bold;font-size:16px;letter-spacing:0.04em;color:#1e1020;">${d.day}</div>
+              <div style="font-size:11px;color:#4a3d5c;">${d.training}</div>
+            </div>
+            <div style="background:white;border:1px solid ${d.color};border-radius:100px;padding:4px 12px;font-size:10px;font-weight:600;color:${d.color};letter-spacing:0.04em;white-space:nowrap;">${d.carb}</div>
+          </div>
+          <div style="font-size:10px;color:${d.color};font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">${d.range}</div>
+          ${d.meals.map(m => `<div style="display:flex;gap:10px;font-size:12px;color:#1e1020;padding:4px 0;border-bottom:1px solid #ece6f5;"><span style="color:#7c3aed;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;min-width:70px;font-weight:600;">${m[0]}</span><span style="flex:1;">${m[1]}</span></div>`).join('')}
+        </div>
+      `).join('')}
+
+      <div style="margin-top:24px;padding-top:12px;border-top:1px solid #ccc;font-size:10px;color:#aaa;text-align:center;">
+        coachparis.github.io/Rebuild-and-rise • Rebuild & Rise by Coach Paris Simone
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
 }
 
 function printShoppingList() {
