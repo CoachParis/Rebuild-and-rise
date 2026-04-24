@@ -2292,7 +2292,7 @@ function toggleDay(id, e) {
   // Save timestamp when completing a training day
   if (state.completedWorkouts[id] && day.type === 'Training') {
     if (!state.completedAt) state.completedAt = {};
-    if (!state.completedAt[id]) state.completedAt[id] = Date.now();
+    if (!state.completedAt[id]) state.completedAt[id] = Date.now();     for (let i = dayIndex + 1; i < data.days.length; i++) { if (data.days[i].type === 'Training') break; state.completedWorkouts[data.days[i].id] = true; }
   }
 
   saveState();
