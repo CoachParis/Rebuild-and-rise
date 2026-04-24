@@ -1595,7 +1595,9 @@ onAuthStateChanged(auth, async (user) => {
     window.isCoach = user.email === COACH_EMAIL;
 
     // ── SINGLE SESSION ENFORCEMENT ──
-    // Write this session token to Firebase     if (!window.sessionInitialized) {     window.sessionInitialized = true;
+    // Write this session token to Firebase
+    if (!window.sessionInitialized) {
+    window.sessionInitialized = true;  
     const sessionRef = doc(db, 'sessions', user.uid);
     await setDoc(sessionRef, {
       token: SESSION_TOKEN,
