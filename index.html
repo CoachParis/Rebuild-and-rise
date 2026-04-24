@@ -2498,6 +2498,70 @@ function checkTestimonialPrompt() {
   document.body.appendChild(overlay);
 }
 
+  function checkMidProgramPrompt() {
+  if (!FEATURES.testimonialPrompt) return;
+  if (state.midReflectionSubmitted) return;
+
+  const allWeek2Done = WEEK_DATA[2].days.filter(d => d.type === 'Training').every(d => state.completedWorkouts[d.id]);
+  const daysSinceStart = getDaysSinceStart();
+  const promptCount = state.midPromptCount || 0;
+  const lastPromptAt = state.midPromptLastShown || 0;
+  const daysSinceLastPrompt = lastPromptAt ? Math.floor((Date.now() - lastPromptAt) / 86400000) : 999;
+
+  let shouldShow = false;
+  if (allWeek2Done && promptCount === 0) shouldShow = true;
+  else if (promptCount === 1 && daysSinceLastPrompt >= 3) shouldShow = true;
+  else if (promptCount === 2 && daysSinceStart >= 29) shouldShow = true;
+
+  if (!shouldShow) return;
+
+  state.midPromptCount = promptCount + 1;
+  state.midPromptLastShown = Date.now();
+  saveState();
+
+  const isFinal = (promptCount + 1) === 3;
+  const emoji = isFinal ? '✨' : '🥳';
+  const headline = isFinal ? 'One Last Reflection.' : 'Two Weeks Strong';
+  const subhead = isFinal
+    ? 'You\'re at the end of the program. Your words now hold the most weight — for you, and for the women who come after you.'
+    : 'Congrats for smashing your workouts for 2 weeks. Now that you\'re halfway through — how does it feel so far?';
+  const ctaText = isFinal ? 'Share My Final Reflection' : 'Share My Reflection';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'mid-program-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(30,16,32,0.97);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;';
+  overlay.innerHTML = `
+    <div style="font-size:40px;margin-bottom:16px;">${emoji}</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.04em;color:#f5eef8;margin-bottom:8px;">${headline}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#cdc6df;margin-bottom:24px;line-height:1.6;max-width:340px;">${subhead}</div>
+    <div style="background:#cdc6df;border-radius:16px;padding:20px;width:100%;max-width:380px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:600;color:#1e1020;margin-bottom:10px;">Share what's shifted — physically, mentally, or in your nervous system.</div>
+      <textarea id="mid-prompt-text" placeholder="What are you noticing?" style="width:100%;background:white;border:1px solid #b8b0d0;border-radius:10px;padding:12px;font-size:13px;color:#1e1020;min-height:80px;outline:none;box-sizing:border-box;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
+      <button onclick="saveMidPrompt()" style="width:100%;background:#7c3aed;color:white;border:none;border-radius:100px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px;font-family:'DM Sans',sans-serif;">${ctaText}</button>
+    </div>
+    <button onclick="document.getElementById('mid-program-overlay').remove()" style="background:transparent;border:1px solid #4a3060;color:#cdc6df;border-radius:100px;padding:10px 24px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Maybe Later</button>
+  `;
+  document.body.appendChild(overlay);
+}
+
+async function saveMidPrompt() {
+  const text = document.getElementById('mid-prompt-text').value.trim();
+  if (!text) return;
+  state.midReflection = text;
+  state.midReflectionSubmitted = true;
+  saveState();
+  if (window.currentUser && window.db) {
+    try {
+      const { setDoc, doc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      await setDoc(doc(window.db, 'midReflections', window.currentUser.uid), {
+        text, email: window.currentUser.email, submittedAt: serverTimestamp()
+      });
+    } catch(e) {}
+  }
+  document.getElementById('mid-program-overlay')?.remove();
+  showToast('Thank you for sharing 🌱');
+}
+
 async function saveTestimonial() {
   const text = document.getElementById('testimonial-text').value.trim();
   if (!text) return;
