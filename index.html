@@ -2074,7 +2074,7 @@ function updateDashboard() {
   const featuresEl = document.getElementById('dashboard-features');
   if (featuresEl) {
     featuresEl.innerHTML =
-      renderCapacityTrendChart() +
+      
       renderMealLog() +
       (FEATURES.communityBoard ? renderCommunityBoard() : '');
   }
@@ -2348,13 +2348,13 @@ function renderCapacityTrendChart() {
     <div class="restore-card" style="margin-bottom:20px;">
       <div class="restore-title">📈 Capacity Trend</div>
       <div style="display:flex;align-items:flex-end;gap:4px;height:60px;margin-top:10px;">
-        ${history.slice(-14).map(entry => {
+        ${history.slice(-30).map(entry => {
           const color = entry.level === 'High' ? '#4ade80' : entry.level === 'Moderate' ? '#fbbf24' : '#ef4444';
           const height = entry.level === 'High' ? '100%' : entry.level === 'Moderate' ? '65%' : '30%';
           return `<div style="flex:1;background:${color};border-radius:3px 3px 0 0;height:${height};opacity:0.8;" title="${entry.date}: ${entry.level}"></div>`;
         }).join('')}
       </div>
-      <div style="font-size:10px;color:var(--card-muted);margin-top:6px;text-align:center;">Last 14 days — 🟢 High 🟡 Moderate 🔴 Low</div>
+      <div style="font-size:10px;color:var(--card-muted);margin-top:6px;text-align:center;">Last 30 days — 🟢 High 🟡 Moderate 🔴 Low</div>
     </div>
   `;
 }
@@ -3206,7 +3206,7 @@ function renderProgress() {
   }
 
   const html = `
-    <div class="guide-week-badge">4-Week Body Progress</div>
+    ${renderCapacityTrendChart()}     <div class="guide-week-badge">4-Week Body Progress</div>
     <div class="guide-title" style="color:#f5eef8;">Track Your Rise</div>
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#cdc6df;margin-bottom:24px;line-height:1.5;">Strength is not only something you perform — it is something you build. Let the numbers tell your story.</div>
 
