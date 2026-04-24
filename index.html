@@ -3350,6 +3350,16 @@ function saveProgress(key, val) {
   updateHomeProgressSummary();
 }
 
+  function markPhotoTaken(prefix) {
+  if (!state.progressData) state.progressData = {};
+  const today = new Date().toLocaleDateString();
+  state.progressData[prefix + '-photoTaken'] = true;
+  state.progressData[prefix + '-photoDate'] = today;
+  saveState();
+  showToast('Photo milestone logged ✓');
+  renderProgress();
+}
+
 function updateHomeProgressSummary() {
   const el = document.getElementById('home-progress-summary');
   if (!el) return;
