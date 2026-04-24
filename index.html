@@ -3419,20 +3419,24 @@ function renderProgress() {
 
         ${fields}
 
-        <div style="margin-top:14px;background:#f5f0ff;border:1px solid #e0daea;border-radius:12px;padding:14px;">
+<div style="margin-top:14px;background:#f5f0ff;border:1px solid #e0daea;border-radius:12px;padding:14px;">
           <div style="font-size:11px;font-weight:600;color:#7c3aed;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">📸 ${photoLabel}</div>
-          <div style="font-size:12px;color:#4a3d5c;line-height:1.6;margin-bottom:12px;">${photoNote}</div>
-          <button onclick="openPoseCamera('${prefix}')" style="width:100%;background:#7c3aed;color:white;border:none;border-radius:10px;padding:12px;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;">
-            📷 Open Guided Pose Camera
-          </button>
-          ${pd[prefix + '-photo'] ? `
-            <div style="margin-top:10px;text-align:center;">
-              <div style="font-size:11px;color:#4ade80;font-weight:600;margin-bottom:6px;">✓ Photo captured — ${pd[prefix + '-photoDate'] || ''}</div>
-              <img src="${pd[prefix + '-photo']}" style="width:100%;border-radius:10px;max-height:200px;object-fit:cover;" />
+          <div style="font-size:12px;color:#4a3d5c;line-height:1.6;margin-bottom:10px;">${photoNote}</div>
+          <div style="background:white;border:1px solid #e0daea;border-radius:10px;padding:12px;margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:600;color:#1e1020;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">How to take your photos</div>
+            <div style="font-size:12px;color:#4a3d5c;line-height:1.7;">
+              • Wear a bathing suit or bra & underwear<br>
+              • Stand 5–6 feet from your camera<br>
+              • Use your phone's <strong>timer (10 sec)</strong> for hands-free capture<br>
+              • Take three angles: <strong>front, side, back</strong><br>
+              • Natural light works best<br>
+              • Save to a private album on your phone
             </div>
-          ` : ''}
+          </div>
+          <button onclick="markPhotoTaken('${prefix}')" style="width:100%;background:${pd[prefix + '-photoTaken'] ? '#4ade80' : '#7c3aed'};color:white;border:none;border-radius:10px;padding:12px;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;">
+            ${pd[prefix + '-photoTaken'] ? `✓ Photos taken — ${pd[prefix + '-photoDate'] || ''}` : 'I Took My Photos ✓'}
+          </button>
         </div>
-      </div>
     `;
   };
 
