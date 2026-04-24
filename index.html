@@ -2092,7 +2092,7 @@ function updateDashboard() {
 
   // Check milestones and testimonial
   if (FEATURES.milestoneBadges) checkMilestones();
-  if (FEATURES.testimonialPrompt) checkTestimonialPrompt();
+  if (FEATURES.testimonialPrompt) { checkTestimonialPrompt(); checkMidProgramPrompt(); }
 }
 
 // ══════════════ NAVIGATION ══════════════
