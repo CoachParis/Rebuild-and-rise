@@ -3414,6 +3414,19 @@ function initHomeCapacity() {
   if (state.lastCapacityDate === today && state.lastCapacity) {
     quickCapacityCheck(state.lastCapacity);
   }
+  else if (state.lastCapacityDate && state.lastCapacity) {
+    const d = new Date(state.lastCapacityDate);
+    const daysAgo = Math.floor((Date.now() - d.getTime()) / 86400000);
+    const when = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : daysAgo + ' days ago';
+    const noteEl = document.querySelector('#home-capacity-buttons');
+    if (noteEl && !document.getElementById('home-last-checkin')) {
+      const hint = document.createElement('div');
+      hint.id = 'home-last-checkin';
+      hint.style.cssText = 'font-size:11px;color:#4a3d5c;margin-bottom:10px;font-style:italic;';
+      hint.textContent = 'Last check-in: ' + when + ' — ' + state.lastCapacity;
+      noteEl.parentNode.insertBefore(hint, noteEl);
+    }
+  }
 }
 
 // ══════════════ PUSH NOTIFICATIONS ══════════════
