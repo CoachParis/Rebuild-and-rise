@@ -266,7 +266,7 @@
 
   .nav-tabs {
     display: flex;
-    gap: 4px;
+    gap: 2px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 100px;
@@ -278,19 +278,264 @@
     border: none;
     color: var(--muted);
     font-family: 'DM Sans', sans-serif;
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 500;
-    letter-spacing: 0.05em;
-    padding: 7px 14px;
+    letter-spacing: 0.04em;
+    padding: 6px 8px;
     border-radius: 100px;
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 48px;
+    line-height: 1;
   }
+
+  .nav-tab svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: all 0.2s;
+  }
+
+  .nav-tab:hover { color: var(--purple-light); }
 
   .nav-tab.active {
     background: var(--purple);
     color: white;
+  }
+
+  .nav-tab.active svg { stroke-width: 1.8; }
+
+  /* Tighter on small screens */
+  @media (max-width: 480px) {
+    .nav-tab {
+      padding: 5px 6px;
+      font-size: 8px;
+      min-width: 42px;
+    }
+    .nav-tab svg { width: 15px; height: 15px; }
+    .nav-tabs { padding: 3px; gap: 1px; }
+  }
+
+  /* ── FAQ TAB ── */
+  .faq-header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-top: 4px;
+  }
+  .faq-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--purple-light);
+    margin-bottom: 6px;
+  }
+  .faq-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .faq-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .faq-search-wrap {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .faq-search {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 12px 18px 12px 42px;
+    font-size: 13px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s;
+  }
+  .faq-search:focus {
+    outline: none;
+    border-color: var(--purple);
+  }
+  .faq-search::placeholder { color: var(--muted); }
+  .faq-search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .faq-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    display: none;
+  }
+  .faq-clear:hover { color: var(--purple-light); }
+  .faq-clear.visible { display: block; }
+  .faq-section {
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .faq-section-header {
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.2s;
+    user-select: none;
+  }
+  .faq-section-header:hover { background: var(--purple-dim); }
+  .faq-section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    color: var(--white);
+  }
+  .faq-section-count {
+    font-size: 10px;
+    color: var(--muted);
+    margin-left: 8px;
+    letter-spacing: 0.05em;
+  }
+  .faq-chevron {
+    width: 12px;
+    height: 12px;
+    border-right: 1.5px solid var(--purple-light);
+    border-bottom: 1.5px solid var(--purple-light);
+    transform: rotate(45deg);
+    transition: transform 0.25s;
+    margin-right: 4px;
+  }
+  .faq-section.expanded .faq-chevron { transform: rotate(-135deg); margin-top: 4px; }
+  .faq-section-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+  }
+  .faq-section.expanded .faq-section-body { max-height: 5000px; }
+  .faq-item {
+    border-top: 1px solid var(--border);
+    padding: 12px 18px;
+    cursor: pointer;
+  }
+  .faq-q {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--white);
+    line-height: 1.45;
+  }
+  .faq-q-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--purple-light);
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: transform 0.2s;
+  }
+  .faq-item.open .faq-q-mark { transform: rotate(180deg); color: var(--purple); }
+  .faq-a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .faq-item.open .faq-a { max-height: 1500px; padding-top: 10px; }
+  .faq-a p { margin-bottom: 8px; }
+  .faq-a p:last-child { margin-bottom: 0; }
+  .faq-a strong { color: var(--white); }
+  .faq-a ol { padding-left: 18px; margin-top: 4px; }
+  .faq-a ol li { margin-bottom: 4px; }
+  .faq-a a { color: var(--purple-light); text-decoration: underline; }
+  .faq-empty {
+    text-align: center;
+    padding: 32px 16px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .faq-help-card {
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid var(--purple);
+    border-radius: 12px;
+    background: var(--purple-dim);
+    text-align: center;
+  }
+  .faq-help-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+    letter-spacing: 0.06em;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+  .faq-help-text {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .faq-help-btn {
+    display: inline-block;
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    padding: 10px 22px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .faq-highlight {
+    background: var(--purple-glow);
+    color: var(--purple-light);
+    padding: 0 2px;
+    border-radius: 2px;
   }
 
   /* ── MAIN CONTENT ── */
@@ -1146,11 +1391,30 @@
       <button onclick="firebaseSignOut()" style="background:transparent;border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:10px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">Sign Out</button>
     </div>
     <div class="nav-tabs">
-      <button class="nav-tab active" onclick="switchTab('dashboard')">Home</button>
-      <button class="nav-tab" onclick="switchTab('guide')">My Toolkit</button>
-      <button class="nav-tab" onclick="switchTab('capacity')">Capacity</button>
-      <button class="nav-tab" onclick="switchTab('program')">Program</button>
-      <button class="nav-tab" onclick="switchTab('progress')">Progress</button>
+      <button class="nav-tab active" onclick="switchTab('dashboard')" aria-label="Home">
+        <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1z"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('guide')" aria-label="Toolkit">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 015.7 5.7l-1.4 1.4-7 7-4 1 1-4 7-7z"/><path d="M3 21l4-1"/></svg>
+        <span>Toolkit</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('capacity')" aria-label="Capacity">
+        <svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
+        <span>Capacity</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('program')" aria-label="Program">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span>Program</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('progress')" aria-label="Progress">
+        <svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+        <span>Progress</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('faq')" aria-label="FAQ">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+        <span>FAQ</span>
+      </button>
     </div>
   </nav>
 
@@ -1400,134 +1664,6 @@
       </div>
     </div>
 
-    <!-- ── NUTRITION TAB ── -->
-    <div id="tab-nutrition" class="tab-panel">
-      <div class="greeting-label" style="margin-bottom:6px">Nutrition</div>
-      <div style="font-family:'Bebas Neue';font-size:36px;letter-spacing:0.04em;line-height:1;margin-bottom:6px;">Structured Eating<br><span style="color:var(--purple-light)">Without Extremes</span></div>
-      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.5;">Carb needs change day to day. Higher activity days require more fuel. Rest days feel better with fewer carbs. Listen to your body and adjust as needed.</div>
-
-      <!-- Protein Anchor Rule -->
-      <div class="guide-section" style="border-left:3px solid var(--purple);margin-bottom:12px;">
-        <div class="guide-section-title">The Protein Anchor Rule</div>
-        <div style="font-size:13px;color:var(--white);font-weight:600;margin-bottom:8px;">Every meal contains a protein source. It is your non-negotiable.</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.8;">Eggs • Greek yogurt • Chicken • Turkey • Beef • Fish • Tofu / Tempeh • Protein shake</div>
-        <div style="margin-top:10px;font-size:12px;color:var(--muted);font-family:'Cormorant Garamond',serif;font-style:italic;line-height:1.6;">Protein stabilizes blood sugar, supports recovery, and improves satiety.</div>
-      </div>
-
-      <!-- Intensity-Based Carb Regulation -->
-      <div class="guide-section" style="margin-bottom:12px;">
-        <div class="guide-section-title">Intensity-Based Carb Regulation</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;font-style:italic;font-family:'Cormorant Garamond',serif;">We do not eliminate carbohydrates. We regulate them.</div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="display:flex;align-items:flex-start;gap:10px;">
-            <span style="font-size:14px;flex-shrink:0;">🟢</span>
-            <div><div style="font-size:12px;font-weight:600;color:var(--white);margin-bottom:2px;">High-Intensity / Lower Body Days</div><div style="font-size:11px;color:var(--muted);">Include a carb source pre- or post-training → rice, potatoes, fruit, oats</div></div>
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:10px;">
-            <span style="font-size:14px;flex-shrink:0;">🟡</span>
-            <div><div style="font-size:12px;font-weight:600;color:var(--white);margin-bottom:2px;">Moderate Training Days</div><div style="font-size:11px;color:var(--muted);">Balanced plate → protein + carb + fat + vegetables</div></div>
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:10px;">
-            <span style="font-size:14px;flex-shrink:0;">🔴</span>
-            <div><div style="font-size:12px;font-weight:600;color:var(--white);margin-bottom:2px;">Restore / Low-Intensity Days</div><div style="font-size:11px;color:var(--muted);">Protein + vegetables + moderate carbs → keep meals steady, not excessive</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Three Carb Day Profiles -->
-      <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px;">Your Three Carb Days</div>
-
-      <!-- Low Carb -->
-      <div class="guide-section" style="border-left:3px solid #ef4444;margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-          <span style="font-size:18px;">🔴</span>
-          <div>
-            <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:0.04em;color:#ef4444;">Low Carb Day</div>
-            <div style="font-size:11px;color:var(--muted);">1–2 servings • 70–120g complex carbohydrates</div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:7px;">
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Breakfast</span><br>Egg scramble with spinach & peppers (avocado slices)</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Snack</span><br>Pinwheel turkey & provolone with lettuce</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Lunch</span><br>Large mixed greens salad w/ grilled chicken, salmon, or shrimp (balsamic dressing)</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Snack</span><br>Greek yogurt & mixed berries</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Dinner</span><br>Grilled or blackened protein (fish, turkey, chicken, lean beef) + non-starchy veggies (broccoli, zucchini)</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Snack</span><br>Whey shake (low carb)</div>
-        </div>
-      </div>
-
-      <!-- Moderate Carb -->
-      <div class="guide-section" style="border-left:3px solid #fbbf24;margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-          <span style="font-size:18px;">🟡</span>
-          <div>
-            <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:0.04em;color:#fbbf24;">Moderate Carb Day</div>
-            <div style="font-size:11px;color:var(--muted);">~130–200g carbohydrates • 0.8–1.0g protein per lb bodyweight</div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:7px;">
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Breakfast</span><br>Eggs with whole grain toast + apple or banana</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Snack</span><br>Protein bar</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Lunch</span><br>Brown rice or quinoa bowl, grilled chicken/fish/turkey, roasted vegetables</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Dinner</span><br>Lean protein (lean beef, fish, chicken) + rice or sweet potato & steamed veggies</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Snack</span><br>Protein low carb shake</div>
-        </div>
-      </div>
-
-      <!-- High Carb -->
-      <div class="guide-section" style="border-left:3px solid #4ade80;margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-          <span style="font-size:18px;">🟢</span>
-          <div>
-            <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:0.04em;color:#4ade80;">High Carb Day</div>
-            <div style="font-size:11px;color:var(--muted);">220–300g carbohydrates</div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:7px;">
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Breakfast</span><br>Oatmeal with nuts + berries & 2 sausage links or bacon</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Snack</span><br>Pear and berry crumble</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Lunch</span><br>Egg boil or onion boil</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Snack</span><br>Protein smoothie</div>
-          <div style="font-size:12px;color:var(--white);"><span style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Dinner</span><br>Spaghetti or leftovers</div>
-        </div>
-      </div>
-
-      <!-- 7-Day Example Week -->
-      <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:20px 0 12px;">7-Day Example Week</div>
-      <div class="guide-section" style="margin-bottom:10px;">
-        <div style="display:flex;flex-direction:column;gap:0;">
-          ${[
-            { day: 'Monday', training: 'Lower Body', capacity: 'High', color: '#4ade80', emoji: '🟢', carb: 'High Carb' },
-            { day: 'Tuesday', training: 'Upper Body Push', capacity: 'High', color: '#4ade80', emoji: '🟢', carb: 'High Carb' },
-            { day: 'Wednesday', training: 'Rest', capacity: 'Low', color: '#ef4444', emoji: '🔴', carb: 'Low Carb' },
-            { day: 'Thursday', training: 'Full Body', capacity: 'Moderate', color: '#fbbf24', emoji: '🟡', carb: 'Moderate Carb' },
-            { day: 'Friday', training: 'Mobility & Recovery', capacity: 'Moderate', color: '#fbbf24', emoji: '🟡', carb: 'Moderate Carb' },
-            { day: 'Saturday', training: 'Rest', capacity: 'Low', color: '#ef4444', emoji: '🔴', carb: 'Low Carb' },
-            { day: 'Sunday', training: 'Rest', capacity: 'Low', color: '#ef4444', emoji: '🔴', carb: 'Low Carb' },
-          ].map((d, i) => `
-            <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);${i===6?'border-bottom:none;':'' }">
-              <div style="width:34px;font-family:'Bebas Neue';font-size:11px;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;flex-shrink:0;">${d.day.slice(0,3)}</div>
-              <div style="flex:1;">
-                <div style="font-size:13px;font-weight:600;color:var(--white);">${d.training}</div>
-                <div style="font-size:11px;color:var(--muted);">${d.carb} Day</div>
-              </div>
-              <div style="display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:4px 10px;">
-                <span style="font-size:11px;">${d.emoji}</span>
-                <span style="font-size:10px;font-weight:600;color:${d.color};letter-spacing:0.05em;">${d.capacity}</span>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- Hydration -->
-      <div class="guide-section" style="border-left:3px solid var(--purple);margin-bottom:24px;">
-        <div class="guide-section-title">Hydration Standard</div>
-        <div style="font-family:'Bebas Neue';font-size:28px;letter-spacing:0.04em;color:var(--purple-light);margin-bottom:6px;">80–100 oz Water Daily</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.6;">Add electrolytes if training intensely or sweating heavily.<br><em style="font-family:'Cormorant Garamond',serif;font-size:13px;">Dehydration mimics fatigue. Do not mistake it for lack of motivation.</em></div>
-      </div>
-    </div>
-
     <!-- ── MY TOOLKIT TAB ── -->
     <div id="tab-guide" class="tab-panel">
       <div id="guide-content"></div>
@@ -1536,6 +1672,11 @@
     <!-- ── PROGRESS TAB ── -->
     <div id="tab-progress" class="tab-panel">
       <div id="progress-content"></div>
+    </div>
+
+    <!-- ── FAQ TAB ── -->
+    <div id="tab-faq" class="tab-panel">
+      <div id="faq-content"></div>
     </div>
 
   </div>
@@ -1622,24 +1763,57 @@ onAuthStateChanged(auth, async (user) => {
     const userDoc = await getDoc(doc(db, 'users', user.uid));
     if (userDoc.exists()) {
       const cloudState = userDoc.data().state;
-      if (cloudState) {
-        // Merge cloud state with local
-        const localSaved = localStorage.getItem('rnr-state');
-        const localState = localSaved ? JSON.parse(localSaved) : {};
-        // Cloud takes priority for completion data
-        window.state = { ...cloudState, ...localState };
-        localStorage.setItem('rnr-state', JSON.stringify(window.state));
+      const cloudUpdated = userDoc.data().lastUpdated;
+      // Convert Firestore timestamp to ms (or 0 if missing)
+      const cloudTime = cloudUpdated && cloudUpdated.toMillis ? cloudUpdated.toMillis() : 0;
+
+      // Check local data
+      const localSaved = localStorage.getItem('rnr-state');
+      const localState = localSaved ? JSON.parse(localSaved) : null;
+      const localTime = parseInt(localStorage.getItem('rnr-state-updated') || '0', 10);
+      const localUserUid = localStorage.getItem('rnr-state-uid');
+
+      // BULLETPROOF SYNC LOGIC:
+      // - If localStorage belongs to a different user → discard it, use cloud
+      // - If no cloud state exists → use local (first-time sync)
+      // - Otherwise → use whichever is NEWER based on timestamp
+      let finalState;
+      if (localUserUid && localUserUid !== user.uid) {
+        // Different user signed in on this device — wipe stale data, use cloud
+        finalState = cloudState || {};
+      } else if (!cloudState) {
+        finalState = localState || {};
+      } else if (!localState) {
+        finalState = cloudState;
+      } else if (localTime > cloudTime) {
+        // Local has unsaved changes (e.g., cloud save failed last time) — keep local, push to cloud
+        finalState = localState;
+      } else {
+        // Cloud is newer or equal — cloud wins (this is the most common case on a new device)
+        finalState = cloudState;
       }
+
+      window.state = finalState;
+      localStorage.setItem('rnr-state', JSON.stringify(window.state));
+      localStorage.setItem('rnr-state-uid', user.uid);
+      localStorage.setItem('rnr-state-updated', Date.now().toString());
     } else {
       // First time — create user doc
+      // Only use localStorage if it belongs to this user (or has no user tag yet)
       const localSaved = localStorage.getItem('rnr-state');
-      const localState = localSaved ? JSON.parse(localSaved) : {};
+      const localUserUid = localStorage.getItem('rnr-state-uid');
+      const localState = (localSaved && (!localUserUid || localUserUid === user.uid))
+        ? JSON.parse(localSaved)
+        : {};
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
         createdAt: serverTimestamp(),
         accessExpires: Date.now() + (40 * 86400000),
-        state: localState
+        state: localState,
+        lastUpdated: serverTimestamp()
       });
+      localStorage.setItem('rnr-state-uid', user.uid);
+      localStorage.setItem('rnr-state-updated', Date.now().toString());
     }
 
     // Hide login, show app
@@ -1765,6 +1939,10 @@ window.showAccessExpiredOverlay = function(email) {
   window.firebaseSignOut = async function() {
   // Stop listening to session changes
   if (window.unsubscribeSession) window.unsubscribeSession();
+  // Clear local data so next user starts clean
+  localStorage.removeItem('rnr-state');
+  localStorage.removeItem('rnr-state-uid');
+  localStorage.removeItem('rnr-state-updated');
   await signOut(auth);
   showToast('Signed out successfully.');
 };
@@ -2025,8 +2203,10 @@ function loadState() {
   }
 }
 
-function saveState() {     window.state = state;
+function saveState() {
+  window.state = state;
   localStorage.setItem('rnr-state', JSON.stringify(state));
+  localStorage.setItem('rnr-state-updated', Date.now().toString());
   // Also save to cloud if logged in
   if (window.saveToCloud) window.saveToCloud();
 }
@@ -2133,7 +2313,9 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
-  event.target.classList.add('active');
+  // Find the actual button (event.target could be the SVG or span inside)
+  const btn = event.target.closest('.nav-tab');
+  if (btn) btn.classList.add('active');
 
   if (tab === 'program') {
     document.getElementById('week-selector').style.display = 'block';
@@ -2141,14 +2323,20 @@ function switchTab(tab) {
   }
   if (tab === 'guide') renderGuide();
   if (tab === 'progress') renderProgress();
+  if (tab === 'faq') renderFAQ();
 }
 
 function switchTabDirect(tab) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
-  document.querySelectorAll('.nav-tab')[4].classList.add('active');
+  // Map tab name to its index in the nav
+  const tabMap = { dashboard: 0, guide: 1, capacity: 2, program: 3, progress: 4, faq: 5 };
+  const idx = tabMap[tab] !== undefined ? tabMap[tab] : 4;
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
   if (tab === 'progress') renderProgress();
+  if (tab === 'guide') renderGuide();
+  if (tab === 'faq') renderFAQ();
 }
 
 // ══════════════ WEEK DETAIL ══════════════
@@ -2161,7 +2349,7 @@ function openWeek(week) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-program').classList.add('active');
-  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+  document.querySelectorAll('.nav-tab')[3].classList.add('active');
 
   document.getElementById('week-selector').style.display = 'none';
   document.getElementById('week-detail').style.display = 'block';
@@ -3412,6 +3600,410 @@ function updateHomeProgressSummary() {
   }
   el.innerHTML = summary;
 }
+
+// ══════════════ FAQ ══════════════
+const FAQ_DATA = [
+  {
+    title: "Getting Started",
+    items: [
+      {
+        q: "What if I lose my login information?",
+        a: "Use the password reset option on the login screen. If you still need help, contact support and we'll assist you."
+      },
+      {
+        q: "Can I share my login with someone else?",
+        a: "No. Your access is for individual use only. Sharing logins may result in restricted access or account removal."
+      },
+      {
+        q: "Do I need to complete Reset & Rebuild™ first?",
+        a: "It is recommended, but not required. Reset & Rebuild™ is the entry-point offer designed to build your foundation. Rebuild & Rise™ expands that foundation into guided progression."
+      }
+    ]
+  },
+  {
+    title: "Using the App",
+    items: [
+      {
+        q: "How do I check my capacity?",
+        a: "Inside the app, you'll complete your Capacity Check-In before training (located on the Home screen). This helps you determine whether today is a Green, Yellow, or Red day so you can train appropriately."
+      },
+      {
+        q: "What does Green, Yellow, or Red mean?",
+        a: "These are capacity markers based on your current stress load, recovery, and readiness.<br><br><strong>Green:</strong> Higher readiness — can push more<br><strong>Yellow:</strong> Moderate readiness — controlled effort<br><strong>Red:</strong> Lower readiness — prioritize support, movement, recovery"
+      },
+      {
+        q: "What is the Meal Log for?",
+        a: "The Meal Log Chart helps you fuel according to demand. Higher output days may need more support, while lower demand days may require less structure. This tracking tool is a great way to monitor your carbohydrate intake and helps with future adjustments."
+      },
+      {
+        q: "Why is the chart under Progress instead of Home?",
+        a: "Because fueling patterns are part of your long-term progress system — not just daily tasks. We want you to think strategically, not reactively."
+      },
+      {
+        q: "Why doesn't the app just tell me exactly what to do every day?",
+        a: "Because the goal is not dependency. Rebuild & Rise™ teaches you how to adjust intelligently so you can build lasting consistency."
+      },
+      {
+        q: "Why does the app ask about carb days or readiness?",
+        a: "Because progress is not just workouts. Fueling, readiness, recovery, and consistency all matter."
+      },
+      {
+        q: "Do I have to track everything perfectly?",
+        a: "No. This system is designed around awareness and structure — not obsessive perfection."
+      }
+    ]
+  },
+  {
+    title: "Program Logistics",
+    items: [
+      {
+        q: "Why are some days locked?",
+        a: "Days unlock intentionally to guide progression, pacing, and follow-through. This helps prevent overwhelm and supports sustainable momentum."
+      },
+      {
+        q: "What if I miss a day?",
+        a: "No problem. Resume where you left off. You do not need to start over because life happened."
+      },
+      {
+        q: "Can I do Day 2 before Day 1?",
+        a: "We recommend following the intended order. The experience is structured to build layer by layer."
+      },
+      {
+        q: "What if I'm on my period?",
+        a: "Use your Capacity Check-In. Some women feel strong and energized, others need more support. Your body's signals matter more than rigid rules."
+      },
+      {
+        q: "What if I feel tired or stressed that week?",
+        a: "That's exactly why this system exists. Adjust using your capacity level rather than quitting or forcing intensity."
+      }
+    ]
+  },
+  {
+    title: "Photos & Tracking",
+    items: [
+      {
+        q: "Where are my progress photos stored?",
+        a: "Your progress photos are stored on your personal device, not inside the Rebuild & Rise™ app. This helps keep your images private and fully within your control."
+      },
+      {
+        q: "Does the app upload or save my photos?",
+        a: "No. Rebuild & Rise™ does not store your progress photos within the platform."
+      },
+      {
+        q: "Can I share my photos for feedback?",
+        a: "Absolutely. You're welcome to share progress photos with me via email if you'd like support, encouragement, or professional feedback."
+      },
+      {
+        q: "Do I have to take progress photos?",
+        a: "No. Progress photos are optional. They are simply one tool to help you notice physical changes that the scale may not reflect."
+      },
+      {
+        q: "What if I don't feel comfortable taking photos?",
+        a: "That's completely fine. Progress can also be measured through strength gains, consistency, energy, clothing fit, confidence, and how your body feels."
+      }
+    ]
+  },
+  {
+    title: "Access & Timeframe",
+    items: [
+      {
+        q: "How long do I have access?",
+        a: "You will receive 40 days of access from the date your program begins. This gives you time to move through the 4-week guided experience with structure, momentum, and a small grace window for life's normal interruptions."
+      },
+      {
+        q: "Why isn't this lifetime access?",
+        a: "Because Rebuild & Rise™ was designed for the woman who is ready now — not someday. Limited access creates commitment, focus, and follow-through instead of leaving another unused program sitting in your files."
+      },
+      {
+        q: "What happens after 40 days?",
+        a: "Your access will expire at the end of your 40-day window. If future renewal or next-step options are available, they will be shared separately."
+      },
+      {
+        q: "Can I pause my access?",
+        a: "Access begins once your enrollment starts. Because this experience is designed around momentum and readiness, pauses are not included unless otherwise stated."
+      }
+    ]
+  },
+  {
+    title: "Readiness & Commitment",
+    items: [
+      {
+        q: "What if I'm very busy right now?",
+        a: "Busy is common. But if you know you cannot currently prioritize even minimum standards, it may be better to wait until you're truly ready to engage."
+      },
+      {
+        q: "Who is this best for?",
+        a: "Rebuild & Rise™ is for the woman who is ready to stop circling the same cycle, ready to follow structure, and ready to apply what she invests in."
+      },
+      {
+        q: "What if I usually buy programs and never finish them?",
+        a: "That pattern is exactly why this experience uses a defined access window. It supports action, urgency, and completion rather than endless postponement."
+      },
+      {
+        q: "Why did you structure it this way?",
+        a: "Because transformation rarely comes from collecting information. It comes from committed implementation. Rebuild & Rise™ is built for execution."
+      },
+      {
+        q: "Is this for people who need endless motivation?",
+        a: "No. This is for women who are ready for structure, guidance, and movement forward."
+      },
+      {
+        q: "Will this work for beginners?",
+        a: "Yes. The system is beginner-friendly while still valuable for women returning to structure."
+      },
+      {
+        q: "Is this coaching?",
+        a: "This is a guided self-led experience. If you need personalized strategy, accountability, or deeper support, your next step is 1:1 coaching."
+      },
+      {
+        q: "What results can I expect?",
+        a: "Results vary based on consistency, effort, lifestyle, and starting point. Our focus is helping you build structure, strength, and momentum that lasts."
+      },
+      {
+        q: "Why is Rebuild & Rise™ different from random workout apps?",
+        a: "Most apps give workouts. Rebuild & Rise™ teaches you how to work with your body's changing capacity so you stop repeating all-or-nothing cycles."
+      }
+    ]
+  },
+  {
+    title: "Technical Support",
+    items: [
+      {
+        q: "Can I use Rebuild & Rise on multiple devices?",
+        a: "Your account works on one device at a time for security — if you sign in on a new device, your previous device will sign out automatically."
+      },
+      {
+        q: "Will my progress carry over when I switch devices?",
+        a: "Yes. Your progress is automatically saved to the cloud and will load on any device when you sign in. <strong>No resets, no lost workouts.</strong> Just sign in with the same email and pick up exactly where you left off."
+      },
+      {
+        q: "Why isn't my phone syncing with my laptop?",
+        a: "Sync happens automatically in the background. If anything looks off, refresh the page once and you'll be in sync. If the issue continues, sign out and back in."
+      },
+      {
+        q: "What happens if I delete the app shortcut?",
+        a: "No worries. Your account still exists. Simply log back in through the access link."
+      },
+      {
+        q: "Is this an actual app in the App Store?",
+        a: "Rebuild & Rise™ is a web-based app experience, meaning you access it through your browser without needing an App Store download."
+      },
+      {
+        q: "Can I use Rebuild & Rise™ like an app?",
+        a: "Yes. Rebuild & Rise™ is a web-based app experience, which means you can save it to your phone's home screen for quick access — just like a regular app."
+      },
+      {
+        q: "How do I add it to my iPhone home screen?",
+        a: "<ol><li>Open Rebuild & Rise™ in Safari</li><li>Tap the Share icon (square with arrow)</li><li>Scroll down and select <strong>Add to Home Screen</strong></li><li>Rename it if you'd like</li><li>Tap <strong>Add</strong></li></ol>Your icon will now appear on your home screen for easy access."
+      },
+      {
+        q: "How do I add it to my Android home screen?",
+        a: "<ol><li>Open Rebuild & Rise™ in Chrome</li><li>Tap the three dots menu in the top corner</li><li>Select <strong>Add to Home Screen</strong> or <strong>Install App</strong></li><li>Confirm by tapping <strong>Add</strong></li></ol>Your shortcut will now appear on your device like an app."
+      },
+      {
+        q: "Do I need to download anything from the App Store?",
+        a: "No. Rebuild & Rise™ runs directly through your browser, so there's no App Store download required."
+      },
+      {
+        q: "What if I accidentally delete the icon?",
+        a: "No problem. Your account is still active. Simply log back in through your access link and re-add it to your home screen anytime."
+      },
+      {
+        q: "Why should I add it to my home screen?",
+        a: "It gives you faster daily access, creates consistency, and makes checking in or completing your workouts more convenient."
+      }
+    ]
+  },
+  {
+    title: "Purchases, Refunds & Email Support",
+    items: [
+      {
+        q: "What is your refund policy?",
+        a: "Due to the immediate delivery of digital materials and instant access to the Rebuild & Rise™ experience, all sales are final and no refunds will be issued."
+      },
+      {
+        q: "Why are there no refunds?",
+        a: "Once enrolled, you receive immediate access to proprietary digital content, guided materials, and program resources. Because of this instant access, purchases are non-refundable."
+      },
+      {
+        q: "When do I get access?",
+        a: "Access is provided shortly after purchase so you can begin right away."
+      },
+      {
+        q: "Will I receive support outside the app?",
+        a: "Yes. In addition to the web-based app experience, you'll receive bonus resources, reminders, guidance, and supportive materials via email throughout your access period. You're also welcome to reach out via email anytime for questions or to share progress."
+      },
+      {
+        q: "Why should I add your email to my contacts?",
+        a: "Adding our email address to your contact list helps ensure you receive important login details, bonuses, updates, and support emails instead of them landing in spam or promotions folders."
+      },
+      {
+        q: "What kind of bonuses may be sent by email?",
+        a: "Bonuses may include additional guidance, mindset support, progress tools, reminders, nutrition support, or resources designed to help you succeed during the program."
+      },
+      {
+        q: "What if I don't receive emails?",
+        a: "First check your spam, junk, promotions, or updates folders. Then add <a href='mailto:coachparis@p2fitness.online'>coachparis@p2fitness.online</a> to your contacts and mark messages as safe."
+      },
+      {
+        q: "Is email support included automatically?",
+        a: "You'll receive program-related communication and bonus support emails tied to your purchase experience. Any personalized coaching outside the stated offer would be separate unless otherwise noted."
+      }
+    ]
+  }
+];
+
+function renderFAQ() {
+  const el = document.getElementById('faq-content');
+  if (!el) return;
+  // Only render once — preserve user's open/closed state on tab switch
+  if (el.dataset.rendered === 'true') return;
+  el.dataset.rendered = 'true';
+
+  let html = `
+    <div class="faq-header">
+      <div class="faq-eyebrow">Help Center</div>
+      <div class="faq-title">Frequently Asked</div>
+      <div class="faq-subtitle">Quick answers about your program, the app, and what to do when something feels off.</div>
+    </div>
+
+    <div class="faq-search-wrap">
+      <svg class="faq-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" class="faq-search" id="faqSearch" placeholder="Search questions..." oninput="filterFAQ()">
+      <button class="faq-clear" id="faqClear" onclick="clearFAQSearch()">Clear</button>
+    </div>
+
+    <div id="faq-list">
+  `;
+
+  FAQ_DATA.forEach((section, idx) => {
+    html += `
+      <div class="faq-section" data-section-idx="${idx}">
+        <div class="faq-section-header" onclick="toggleFAQSection(${idx})">
+          <div>
+            <span class="faq-section-title">${section.title}</span>
+            <span class="faq-section-count">${section.items.length}</span>
+          </div>
+          <div class="faq-chevron"></div>
+        </div>
+        <div class="faq-section-body">
+    `;
+    section.items.forEach((item, i) => {
+      html += `
+          <div class="faq-item" data-q="${escapeHtmlAttr(item.q)}" data-a="${escapeHtmlAttr(stripTags(item.a))}" onclick="toggleFAQItem(this)">
+            <div class="faq-q">
+              <span class="faq-q-text">${item.q}</span>
+              <span class="faq-q-mark">&#x2304;</span>
+            </div>
+            <div class="faq-a">${item.a}</div>
+          </div>
+      `;
+    });
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+    </div>
+
+    <div class="faq-empty" id="faqEmpty" style="display:none;">
+      No matches. Try different keywords or browse the categories above.
+    </div>
+
+    <div class="faq-help-card">
+      <div class="faq-help-title">Still need help?</div>
+      <div class="faq-help-text">Reach out anytime — we'll get back to you within 1–2 business days.</div>
+      <a class="faq-help-btn" href="mailto:coachparis@p2fitness.online?subject=Rebuild%20%26%20Rise%20Support">Email Coach Paris</a>
+    </div>
+  `;
+
+  el.innerHTML = html;
+}
+
+function escapeHtmlAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function stripTags(s) {
+  return String(s).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function toggleFAQSection(idx) {
+  const sec = document.querySelector(`.faq-section[data-section-idx="${idx}"]`);
+  if (sec) sec.classList.toggle('expanded');
+}
+
+function toggleFAQItem(item) {
+  // Don't trigger if clicking inside an open answer (so links/text are selectable)
+  if (event.target.closest('.faq-a') && item.classList.contains('open')) return;
+  item.classList.toggle('open');
+}
+
+function filterFAQ() {
+  const query = document.getElementById('faqSearch').value.trim().toLowerCase();
+  const clearBtn = document.getElementById('faqClear');
+  const emptyState = document.getElementById('faqEmpty');
+  const sections = document.querySelectorAll('.faq-section');
+
+  if (!query) {
+    clearBtn.classList.remove('visible');
+    sections.forEach(sec => {
+      sec.style.display = '';
+      sec.classList.remove('expanded');
+      sec.querySelectorAll('.faq-item').forEach(item => {
+        item.style.display = '';
+        item.classList.remove('open');
+        // Reset highlights
+        const qText = item.querySelector('.faq-q-text');
+        if (qText) qText.innerHTML = item.dataset.q;
+      });
+    });
+    emptyState.style.display = 'none';
+    return;
+  }
+
+  clearBtn.classList.add('visible');
+  let totalMatches = 0;
+
+  sections.forEach(sec => {
+    let sectionHasMatch = false;
+    sec.querySelectorAll('.faq-item').forEach(item => {
+      const q = (item.dataset.q || '').toLowerCase();
+      const a = (item.dataset.a || '').toLowerCase();
+      const match = q.includes(query) || a.includes(query);
+      item.style.display = match ? '' : 'none';
+      if (match) {
+        sectionHasMatch = true;
+        totalMatches++;
+        // Highlight match in question text
+        const qText = item.querySelector('.faq-q-text');
+        if (qText) {
+          const original = item.dataset.q;
+          const re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+          qText.innerHTML = original.replace(re, '<span class="faq-highlight">$1</span>');
+        }
+        item.classList.add('open');
+      } else {
+        item.classList.remove('open');
+      }
+    });
+    if (sectionHasMatch) {
+      sec.style.display = '';
+      sec.classList.add('expanded');
+    } else {
+      sec.style.display = 'none';
+    }
+  });
+
+  emptyState.style.display = totalMatches === 0 ? 'block' : 'none';
+}
+
+function clearFAQSearch() {
+  document.getElementById('faqSearch').value = '';
+  filterFAQ();
+}
+
 
 function renderProgress() {
   const days = getDaysSinceStart();
