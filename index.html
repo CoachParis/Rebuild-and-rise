@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rebuild & Rise | Coach Paris Simone</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9T90VGSF9X"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-9T90VGSF9X');
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1427,6 +1435,7 @@
         <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#cdc6df;font-weight:600;margin-bottom:12px;">👑 Coach Dashboard</div>
         <textarea id="coach-announcement-text" placeholder="Post an announcement to all clients..." style="width:100%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:10px;color:white;font-family:'DM Sans',sans-serif;font-size:13px;resize:none;min-height:70px;outline:none;box-sizing:border-box;"></textarea>
         <button onclick="saveAnnouncement()" style="margin-top:8px;background:white;color:#7c3aed;border:none;border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Post Announcement</button>
+        <button onclick="openClientDashboard()" style="margin-top:8px;margin-left:8px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">👥 View Clients</button>
       </div>
 
       <!-- COACH ANNOUNCEMENT DISPLAY -->
@@ -1721,6 +1730,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+window._db = db; // expose for coach dashboard
 
 // COACH EMAIL
 const COACH_EMAIL = 'parispassports@gmail.com';
@@ -2053,9 +2063,9 @@ setTimeout(window.loadAnnouncement, 2000);
 // Upload to GitHub after changing — goes live in 60 seconds
 const FEATURES = {
   pushNotifications: true,        // LIVE — automated accountability reminders
-  testimonialPrompt: false,       // V2 — auto-collect social proof at Week 4
+  testimonialPrompt: true,        // LIVE — auto-collect social proof at Week 4
   capacityTrendChart: true,      // V2 — visual nervous system pattern graph
-  coachDashboard: false,          // V2 — see all client data as coach
+  coachDashboard: true,           // LIVE — see all client data as coach
   strengthLog: true,             // V2 — track weights used each session
   mealLog: true,                 // V2 — daily Low/Moderate/High meal confirmation
   shoppingListCustomizer: false,  // V2 — check off what you have, print what you need
@@ -4488,6 +4498,109 @@ function updateHydrationUI() {
   if (countEl) countEl.textContent = glasses;
   if (ozEl) ozEl.textContent = oz + ' oz';
   if (barEl) barEl.style.width = pct + '%';
+}
+
+// ══════════════ COACH CLIENT DASHBOARD ══════════════
+async function openClientDashboard() {
+  if (!FEATURES.coachDashboard || !window.isCoach) return;
+
+  const existing = document.getElementById('coach-dashboard-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'coach-dashboard-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#1e1020;z-index:9999;overflow-y:auto;padding:24px;font-family:DM Sans,sans-serif;color:#f5eef8;';
+  overlay.innerHTML = `
+    <div style="max-width:600px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #4a3060;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.04em;color:#f5eef8;">Client Dashboard</div>
+          <div style="font-size:11px;color:#cdc6df;margin-top:2px;">Coach Paris Simone</div>
+        </div>
+        <button onclick="document.getElementById('coach-dashboard-overlay').remove()" style="background:transparent;border:1px solid #4a3060;color:#cdc6df;border-radius:100px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">✕ Close</button>
+      </div>
+      <div id="client-list-content" style="text-align:center;padding:32px;color:#cdc6df;">
+        <div style="font-size:14px;">Loading clients...</div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Load all clients from Firestore
+  try {
+    const { getDocs, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const db = window._db;
+    if (!db) { document.getElementById('client-list-content').innerHTML = '<div style="color:#ef4444;">Database not available. Please refresh and try again.</div>'; return; }
+
+    const snapshot = await getDocs(collection(db, 'users'));
+    const clients = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      clients.push({ id: doc.id, ...data });
+    });
+
+    if (clients.length === 0) {
+      document.getElementById('client-list-content').innerHTML = '<div style="color:#cdc6df;font-style:italic;">No clients yet. Share your program link to get started.</div>';
+      return;
+    }
+
+    // Sort by most recently updated
+    clients.sort((a, b) => {
+      const aTime = a.lastUpdated && a.lastUpdated.toMillis ? a.lastUpdated.toMillis() : 0;
+      const bTime = b.lastUpdated && b.lastUpdated.toMillis ? b.lastUpdated.toMillis() : 0;
+      return bTime - aTime;
+    });
+
+    const html = `
+      <div style="font-size:11px;color:#9d5cf6;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;font-weight:600;">${clients.length} Client${clients.length !== 1 ? 's' : ''} Enrolled</div>
+      ${clients.map(client => {
+        const s = client.state || {};
+        const completed = Object.values(s.completedWorkouts || {}).filter(Boolean).length;
+        const days = s.startDate ? Math.floor((Date.now() - s.startDate) / 86400000) : 0;
+        const streak = s.streak || 0;
+        const lastCapacity = s.lastCapacity || '—';
+        const lastActive = client.lastUpdated && client.lastUpdated.toMillis
+          ? Math.floor((Date.now() - client.lastUpdated.toMillis()) / 86400000)
+          : null;
+        const lastActiveText = lastActive === null ? 'Unknown' : lastActive === 0 ? 'Today' : lastActive === 1 ? 'Yesterday' : `${lastActive} days ago`;
+        const capacityColor = lastCapacity === 'High' ? '#4ade80' : lastCapacity === 'Moderate' ? '#fbbf24' : lastCapacity === 'Low' ? '#ef4444' : '#cdc6df';
+        const isCoachAccount = client.email === 'parispassports@gmail.com';
+        if (isCoachAccount) return '';
+
+        return `
+          <div style="background:#2e1a35;border:1px solid #4a3060;border-radius:14px;padding:16px;margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:#f5eef8;margin-bottom:2px;">${client.email || 'Unknown'}</div>
+                <div style="font-size:11px;color:#9d7eb8;">Last active: ${lastActiveText}</div>
+              </div>
+              <div style="font-size:10px;font-weight:600;color:${capacityColor};background:rgba(0,0,0,0.3);border-radius:100px;padding:3px 10px;letter-spacing:0.08em;text-transform:uppercase;">${lastCapacity} capacity</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+              <div style="background:#1e1020;border-radius:10px;padding:10px;text-align:center;">
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#7c3aed;letter-spacing:0.04em;">${days}</div>
+                <div style="font-size:9px;color:#9d7eb8;letter-spacing:0.1em;text-transform:uppercase;">Days In</div>
+              </div>
+              <div style="background:#1e1020;border-radius:10px;padding:10px;text-align:center;">
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#7c3aed;letter-spacing:0.04em;">${completed}</div>
+                <div style="font-size:9px;color:#9d7eb8;letter-spacing:0.1em;text-transform:uppercase;">Workouts</div>
+              </div>
+              <div style="background:#1e1020;border-radius:10px;padding:10px;text-align:center;">
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#7c3aed;letter-spacing:0.04em;">🔥${streak}</div>
+                <div style="font-size:9px;color:#9d7eb8;letter-spacing:0.1em;text-transform:uppercase;">Streak</div>
+              </div>
+            </div>
+            ${s.testimonial ? `<div style="margin-top:10px;background:#1e1020;border-left:3px solid #9d5cf6;border-radius:8px;padding:10px;font-size:12px;color:#cdc6df;font-style:italic;line-height:1.5;">"${s.testimonial}"</div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    `;
+
+    document.getElementById('client-list-content').innerHTML = html;
+  } catch(e) {
+    console.error('Client dashboard error:', e);
+    document.getElementById('client-list-content').innerHTML = `<div style="color:#ef4444;font-size:13px;">Could not load clients. Check Firestore security rules.<br><br><span style="font-size:11px;color:#9d7eb8;">${e.message}</span></div>`;
+  }
 }
 
 // ══════════════ TOAST ══════════════
