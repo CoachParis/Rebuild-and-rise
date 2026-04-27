@@ -1404,7 +1404,7 @@
         <span>Home</span>
       </button>
       <button class="nav-tab" onclick="switchTab('guide')" aria-label="Toolkit">
-        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 015.7 5.7l-1.4 1.4-7 7-4 1 1-4 7-7z"/><path d="M3 21l4-1"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M14.7 2.3a1 1 0 00-1.4 0l-1.3 1.3-2-2a1 1 0 00-1.4 1.4l2 2L3 12.6V17h4.4l8.6-8.6 2 2a1 1 0 001.4-1.4l-2-2 1.3-1.3a1 1 0 000-1.4z"/><path d="M3 21h18"/></svg>
         <span>Toolkit</span>
       </button>
       <button class="nav-tab" onclick="switchTab('capacity')" aria-label="Capacity">
@@ -1437,6 +1437,7 @@
         <button onclick="saveAnnouncement()" style="margin-top:8px;background:white;color:#7c3aed;border:none;border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Post Announcement</button>
         <button onclick="clearAnnouncement()" style="margin-top:8px;margin-left:8px;background:transparent;color:#cdc6df;border:1px solid rgba(255,255,255,0.3);border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🗑 Clear</button>
         <button onclick="openClientDashboard()" style="margin-top:8px;margin-left:8px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">👥 View Clients</button>
+        <button onclick="openApprovedEmailsManager()" style="margin-top:8px;margin-left:8px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">➕ Add Client</button>
       </div>
 
       <!-- COACH ANNOUNCEMENT DISPLAY -->
@@ -4515,6 +4516,118 @@ function updateHydrationUI() {
   if (countEl) countEl.textContent = glasses;
   if (ozEl) ozEl.textContent = oz + ' oz';
   if (barEl) barEl.style.width = pct + '%';
+}
+
+// ══════════════ APPROVED EMAILS MANAGER ══════════════
+async function openApprovedEmailsManager() {
+  if (!window.isCoach) return;
+
+  const existing = document.getElementById('approved-emails-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'approved-emails-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#1e1020;z-index:9999;overflow-y:auto;padding:24px;font-family:DM Sans,sans-serif;color:#f5eef8;';
+  overlay.innerHTML = `
+    <div style="max-width:600px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #4a3060;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.04em;">Add Client Access</div>
+          <div style="font-size:11px;color:#cdc6df;margin-top:2px;">Add a client's email after they purchase</div>
+        </div>
+        <button onclick="document.getElementById('approved-emails-overlay').remove()" style="background:transparent;border:1px solid #4a3060;color:#cdc6df;border-radius:100px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">✕ Close</button>
+      </div>
+
+      <!-- ADD NEW CLIENT -->
+      <div style="background:#2e1a35;border:1px solid #4a3060;border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#9d5cf6;font-weight:600;margin-bottom:14px;">➕ New Client</div>
+        <input id="new-client-email" type="email" placeholder="client@email.com" style="width:100%;background:#1e1020;border:1px solid #4a3060;border-radius:10px;padding:12px 14px;font-size:14px;color:#f5eef8;outline:none;box-sizing:border-box;margin-bottom:10px;font-family:'DM Sans',sans-serif;" />
+        <input id="new-client-name" type="text" placeholder="Client first name (optional)" style="width:100%;background:#1e1020;border:1px solid #4a3060;border-radius:10px;padding:12px 14px;font-size:14px;color:#f5eef8;outline:none;box-sizing:border-box;margin-bottom:12px;font-family:'DM Sans',sans-serif;" />
+        <button onclick="addApprovedEmail()" style="width:100%;background:#7c3aed;color:white;border:none;border-radius:100px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:0.05em;text-transform:uppercase;">Add Client ➕</button>
+        <div id="add-email-status" style="font-size:12px;margin-top:10px;min-height:16px;text-align:center;"></div>
+      </div>
+
+      <!-- EXISTING CLIENTS -->
+      <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#9d5cf6;font-weight:600;margin-bottom:14px;">Current Approved Clients</div>
+      <div id="approved-emails-list" style="color:#cdc6df;font-size:13px;text-align:center;padding:16px;">Loading...</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  loadApprovedEmails();
+}
+
+async function addApprovedEmail() {
+  const email = document.getElementById('new-client-email').value.trim().toLowerCase();
+  const name = document.getElementById('new-client-name').value.trim();
+  const statusEl = document.getElementById('add-email-status');
+
+  if (!email || !email.includes('@')) {
+    statusEl.textContent = 'Please enter a valid email address.';
+    statusEl.style.color = '#ef4444';
+    return;
+  }
+
+  try {
+    const { setDoc, doc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    await setDoc(doc(window._db, 'approvedEmails', email), {
+      email,
+      name: name || '',
+      addedAt: serverTimestamp(),
+      addedBy: window.currentUser.email
+    });
+    statusEl.textContent = `✓ ${email} added successfully!`;
+    statusEl.style.color = '#4ade80';
+    document.getElementById('new-client-email').value = '';
+    document.getElementById('new-client-name').value = '';
+    loadApprovedEmails();
+  } catch(e) {
+    statusEl.textContent = 'Error adding client. Try again.';
+    statusEl.style.color = '#ef4444';
+  }
+}
+
+async function removeApprovedEmail(email) {
+  if (!confirm(`Remove access for ${email}?`)) return;
+  try {
+    const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    await deleteDoc(doc(window._db, 'approvedEmails', email));
+    showToast(`${email} removed ✓`);
+    loadApprovedEmails();
+  } catch(e) {
+    showToast('Error removing client.');
+  }
+}
+
+async function loadApprovedEmails() {
+  const listEl = document.getElementById('approved-emails-list');
+  if (!listEl) return;
+
+  try {
+    const { getDocs, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const snapshot = await getDocs(collection(window._db, 'approvedEmails'));
+    const emails = [];
+    snapshot.forEach(doc => emails.push({ id: doc.id, ...doc.data() }));
+
+    if (emails.length === 0) {
+      listEl.innerHTML = '<div style="font-style:italic;color:#7a5f85;padding:16px;">No clients added yet.</div>';
+      return;
+    }
+
+    // Sort alphabetically
+    emails.sort((a, b) => a.email.localeCompare(b.email));
+
+    listEl.innerHTML = emails.map(e => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#2e1a35;border:1px solid #4a3060;border-radius:12px;margin-bottom:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#f5eef8;">${e.email}</div>
+          ${e.name ? `<div style="font-size:11px;color:#9d7eb8;margin-top:2px;">${e.name}</div>` : ''}
+        </div>
+        <button onclick="removeApprovedEmail('${e.email}')" style="background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:100px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Remove</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    listEl.innerHTML = '<div style="color:#ef4444;">Could not load clients.</div>';
+  }
 }
 
 // ══════════════ COACH CLIENT DASHBOARD ══════════════
