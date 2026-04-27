@@ -1435,6 +1435,7 @@
         <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#cdc6df;font-weight:600;margin-bottom:12px;">👑 Coach Dashboard</div>
         <textarea id="coach-announcement-text" placeholder="Post an announcement to all clients..." style="width:100%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:10px;color:white;font-family:'DM Sans',sans-serif;font-size:13px;resize:none;min-height:70px;outline:none;box-sizing:border-box;"></textarea>
         <button onclick="saveAnnouncement()" style="margin-top:8px;background:white;color:#7c3aed;border:none;border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Post Announcement</button>
+        <button onclick="clearAnnouncement()" style="margin-top:8px;margin-left:8px;background:transparent;color:#cdc6df;border:1px solid rgba(255,255,255,0.3);border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🗑 Clear</button>
         <button onclick="openClientDashboard()" style="margin-top:8px;margin-left:8px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">👥 View Clients</button>
       </div>
 
@@ -2024,6 +2025,22 @@ window.saveAnnouncement = async function() {
     loadAnnouncement();
   } catch(e) {
     showToast('Error posting announcement');
+  }
+};
+
+window.clearAnnouncement = async function() {
+  try {
+    const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    await deleteDoc(doc(window._db, 'announcements', 'latest'));
+    // Hide the announcement display card
+    const el = document.getElementById('coach-announcement-display');
+    if (el) el.style.display = 'none';
+    // Clear any open popup
+    const popup = document.getElementById('announcement-popup');
+    if (popup) popup.remove();
+    showToast('Announcement cleared ✓');
+  } catch(e) {
+    showToast('Could not clear announcement.');
   }
 };
 
