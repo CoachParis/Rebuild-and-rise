@@ -1433,7 +1433,7 @@
       <!-- COACH BADGE -->
       <div id="coach-badge" style="display:none;background:#7c3aed;border-radius:14px;padding:16px 20px;margin-bottom:20px;">
         <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#cdc6df;font-weight:600;margin-bottom:12px;">👑 Coach Dashboard</div>
-        <textarea id="coach-announcement-text" placeholder="Post an announcement to all clients..." style="width:100%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:10px;color:white;font-family:'DM Sans',sans-serif;font-size:13px;resize:none;min-height:70px;outline:none;box-sizing:border-box;"></textarea>
+        <textarea id="coach-announcement-text" placeholder="Post an announcement to all clients..." style="width:100%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;min-height:120px;line-height:1.5;outline:none;box-sizing:border-box;"></textarea>
         <button onclick="saveAnnouncement()" style="margin-top:8px;background:white;color:#7c3aed;border:none;border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Post Announcement</button>
         <button onclick="clearAnnouncement()" style="margin-top:8px;margin-left:8px;background:transparent;color:#cdc6df;border:1px solid rgba(255,255,255,0.3);border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🗑 Clear</button>
         <button onclick="openClientDashboard()" style="margin-top:8px;margin-left:8px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">👥 View Clients</button>
@@ -2148,11 +2148,49 @@ const WEEK_DATA = {
     name: "Reinforce",
     goal: "Same patterns, increased demand. Prove your consistency and reinforce the skill.",
     days: [
-      { id: "2-1", name: "Day 1 — Lower Body", detail: "Added set on key lifts • More intention", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "2-2", name: "Day 2 — Upper Body Push", detail: "Slight rep increase • Tempo work", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "2-3", name: "Day 3 — Upper Body Pull", detail: "Pull pattern introduced • Balanced loading", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "2-4", name: "Day 4 — Lower Body + Core", detail: "Compound lower + stability", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "2-5", name: "Day 5 — Recovery", detail: "Shorter rest periods • Active recovery", type: "Recovery", videoUrl: "#", exercises: [] }
+      { id: "2-1", name: "Day 1 — Pull + Lower", detail: "Pull pattern + lower body strength", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Lat Pull Down", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/UOw4XpauHgk" },
+          { name: "Leg Extensions", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/myRSTKipZ1U" },
+          { name: "Close Grip Row", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/xECXrUvWIt8" },
+          { name: "Lateral Lunge", sets: "2-3", reps: "8-10", rest: "30s", url: "https://youtu.be/MoOWcooUcEA" },
+          { name: "DB Reverse Grip Row", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/0ZnrMymTt5Q" },
+          { name: "Goblet Squat", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/glJL9dkWOyo" }
+        ]
+      },
+      { id: "2-2", name: "Day 2 — Core & Stability", detail: "Trunk strength • Anti-rotation focus", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Weighted Marches", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/2KP0PCEb4P8" },
+          { name: "Side Bend", sets: "2-3", reps: "10-12 each side", rest: "30s", url: "https://youtu.be/kgRtPh2W9hU" },
+          { name: "Plank", sets: "2-3", reps: "20-40s hold", rest: "30s", url: "https://youtu.be/NmyhifYTnjs" },
+          { name: "Scissor Kicks", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/5v2NF3j5q2Y" },
+          { name: "Dead Bug", sets: "2-3", reps: "8", rest: "30s", url: "https://youtu.be/KWp7f0ElR5I" },
+          { name: "Bridge", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/R2YauNBKxgQ" }
+        ]
+      },
+      { id: "2-3", name: "Day 3 — Rest", detail: "Complete rest • Let your body absorb the work", type: "Rest", videoUrl: "#", exercises: [] },
+      { id: "2-4", name: "Day 4 — Cardio", detail: "Steady-state conditioning • Choose your option", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Jump Rope (Option A)", sets: "1", reps: "15 minutes", rest: "—", url: "" },
+          { name: "Walking (Option B)", sets: "1", reps: "30 minutes", rest: "—", url: "" }
+        ]
+      },
+      { id: "2-5", name: "Day 5 — Upper Body Push + Arms", detail: "Press pattern + isolation work", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Lying Chest Press", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/xLtERNd9ECA" },
+          { name: "Tricep Kickbacks", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/xorUBYQWS_c" },
+          { name: "Hammer Curls", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/1yxunTmnDDM" },
+          { name: "Tricep Single-Arm Extension", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/Tg2Ib-IcYs4" },
+          { name: "Full Can", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/5z2UyhpzRPE" },
+          { name: "Bicep Curls", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/OgtEQcs0yPM" }
+        ]
+      },
+      { id: "2-6", name: "Day 6 — Rest", detail: "Complete rest • Honor your output this week", type: "Rest", videoUrl: "#", exercises: [] },
+      { id: "2-7", name: "Day 7 — Active Rest & Mobility", detail: "Nervous system reset • Gentle movement", type: "Recovery", videoUrl: "#",
+        exercises: [
+          { name: "Guided Mobility Session", sets: "1", reps: "Full circuit", rest: "—", url: "https://youtu.be/ImH1apjBv3Y" }
+        ]
+      }
     ],
     journal: [
       "Where did you notice yourself getting stronger — physically or mentally?",
@@ -2164,11 +2202,55 @@ const WEEK_DATA = {
     name: "Rise",
     goal: "Transition from participation into progression. Ownership starts here.",
     days: [
-      { id: "3-1", name: "Day 1 — Lower Body Heavy", detail: "Heavier loads • Stronger performance targets", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "3-2", name: "Day 2 — Upper Body Push Heavy", detail: "More total sets • Greater challenge", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "3-3", name: "Day 3 — Upper Body Pull Heavy", detail: "Progressive overload applied", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "3-4", name: "Day 4 — Full Body Power", detail: "Compound movements with load", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "3-5", name: "Day 5 — Recovery + Support", detail: "Nervous system support • Intentional rest", type: "Recovery", videoUrl: "#", exercises: [] }
+      { id: "3-1", name: "Day 1 — Lower Body", detail: "Posterior chain + lateral strength", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Step-backs", sets: "2-3", reps: "8-10 each leg", rest: "30s", url: "https://youtu.be/SmBYcfAw_AQ" },
+          { name: "Romanian Deadlift (RDL)", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/bRp3-ghancw" },
+          { name: "Lateral Lunge", sets: "2-3", reps: "8-10 each side", rest: "30s", url: "https://youtu.be/MoOWcooUcEA" },
+          { name: "Kickbacks", sets: "2-3", reps: "10-12 each leg", rest: "30s", url: "https://youtu.be/aAfYp_ZIK9o" },
+          { name: "Lateral Leg Raise", sets: "2-3", reps: "10-12 each side", rest: "30s", url: "https://youtu.be/J4UFbIZyCR0" },
+          { name: "Calf Raise", sets: "2-3", reps: "12-15", rest: "30s", url: "https://youtu.be/l-wJAQ1eL90" }
+        ]
+      },
+      { id: "3-2", name: "Day 2 — Core & Stability", detail: "Trunk strength • Anti-movement control", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Plank", sets: "2-3", reps: "20-40s hold", rest: "30s", url: "https://youtu.be/NmyhifYTnjs" },
+          { name: "Weighted Marches", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/2KP0PCEb4P8" },
+          { name: "Side Bends", sets: "2-3", reps: "10-12 each side", rest: "30s", url: "https://youtu.be/kgRtPh2W9hU" },
+          { name: "DB Passes", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/dPrc2NEFDgw" },
+          { name: "Dead Bug", sets: "2-3", reps: "8", rest: "30s", url: "https://youtu.be/KWp7f0ElR5I" },
+          { name: "Scissor Kicks", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/5v2NF3j5q2Y" }
+        ]
+      },
+      { id: "3-3", name: "Day 3 — Cardio", detail: "Steady conditioning • Choose your option", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Rowing (Option A)", sets: "1", reps: "20 minutes", rest: "—", url: "" },
+          { name: "Jump Rope (Option B)", sets: "1", reps: "15 minutes", rest: "—", url: "" },
+          { name: "Light Jog (Option C)", sets: "1", reps: "30 minutes", rest: "—", url: "" }
+        ]
+      },
+      { id: "3-4", name: "Day 4 — Rest", detail: "Complete rest • Recovery is training", type: "Rest", videoUrl: "#", exercises: [] },
+      { id: "3-5", name: "Day 5 — Upper Body Push + Arms", detail: "Press pattern + shoulder stability", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Wall Push-up", sets: "2-3", reps: "8-10", rest: "30s", url: "https://youtu.be/NZEUhtTBWx8" },
+          { name: "Tricep Dip", sets: "2-3", reps: "8-10", rest: "30s", url: "https://youtu.be/_YLP3rSaGYw" },
+          { name: "Close Grip Press", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/cmDtnpq8R4E" },
+          { name: "Hammer Curl", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/1yxunTmnDDM" },
+          { name: "Single-Arm Tricep Extension", sets: "2-3", reps: "10-12 each arm", rest: "30s", url: "https://youtu.be/Tg2Ib-IcYs4" },
+          { name: "Full Can", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/5z2UyhpzRPE" }
+        ]
+      },
+      { id: "3-6", name: "Day 6 — Full Body Pull + Lower", detail: "Compound movements • Total integration", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Step-ups", sets: "2-3", reps: "8-10 each leg", rest: "30s", url: "https://youtu.be/dcJDWNqA8lE" },
+          { name: "DB Reverse Grip Row", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/0ZnrMymTt5Q" },
+          { name: "Leg Extensions", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/myRSTKipZ1U" },
+          { name: "Lat Pull Down", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/UOw4XpauHgk" },
+          { name: "Goblet Squat", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/glJL9dkWOyo" },
+          { name: "Close Grip Row", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/xECXrUvWIt8" }
+        ]
+      },
+      { id: "3-7", name: "Day 7 — Rest", detail: "Complete rest • Honor this week's work", type: "Rest", videoUrl: "#", exercises: [] }
     ],
     journal: [
       "Describe a moment this week where you felt genuinely strong.",
@@ -2180,11 +2262,79 @@ const WEEK_DATA = {
     name: "Strengthen",
     goal: "Leave powerful, capable, and clear. This is not burnout week — this is consolidation.",
     days: [
-      { id: "4-1", name: "Day 1 — Lower Body (Best Version)", detail: "Strongest execution of the split", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "4-2", name: "Day 2 — Upper Body Push (Best Version)", detail: "Your best effort — measured", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "4-3", name: "Day 3 — Upper Body Pull (Best Version)", detail: "Repeat main lifts, better execution", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "4-4", name: "Day 4 — Full Body Power", detail: "Measurable wins — track everything", type: "Training", videoUrl: "#", exercises: [] },
-      { id: "4-5", name: "Day 5 — Graduation Workout", detail: "Your choice • Capacity based • Celebrate", type: "Training", videoUrl: "#", exercises: [] }
+      { id: "4-1", name: "Day 1 — Lower Body", detail: "Posterior chain focus • Final loaded week", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "B-Stance RDL", sets: "2-3", reps: "10-12 each leg", rest: "30s", url: "https://youtu.be/2mX7RGkL6n4" },
+          { name: "Step Backs", sets: "2-3", reps: "8-10 each leg", rest: "30s", url: "https://youtu.be/SmBYcfAw_AQ" },
+          { name: "Windmill", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/8JTdPBuPEZ0" },
+          { name: "Kickbacks", sets: "2-3", reps: "10-12 each leg", rest: "30s", url: "https://youtu.be/aAfYp_ZIK9o" },
+          { name: "Lying Leg Curl", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/lE3NsCGuNQo" },
+          { name: "Calf Raise", sets: "2-3", reps: "12-15", rest: "30s", url: "https://youtu.be/l-wJAQ1eL90" }
+        ]
+      },
+      { id: "4-2", name: "Day 2 — Core & Stability", detail: "Trunk integrity • Anti-movement control", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Bridge", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/cbOmkz0deS8" },
+          { name: "Side Plank", sets: "2-3", reps: "20-30s each side", rest: "30s", url: "https://youtu.be/8UkriAnNelc" },
+          { name: "Plank", sets: "2-3", reps: "30-45s hold", rest: "30s", url: "https://youtu.be/NmyhifYTnjs" },
+          { name: "Superman", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/RFs_5UzxGp4" },
+          { name: "Dead Bug", sets: "2-3", reps: "8", rest: "30s", url: "https://youtu.be/KWp7f0ElR5I" },
+          { name: "Scissor Kicks", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/5v2NF3j5q2Y" }
+        ]
+      },
+      { id: "4-3", name: "Day 3 — Cardio", detail: "Conditioning work • Choose your modality", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Rowing (Option A)", sets: "1", reps: "22 minutes", rest: "—", url: "" },
+          { name: "Jump Rope (Option B)", sets: "1", reps: "15 minutes", rest: "—", url: "" },
+          { name: "Light Jog (Option C)", sets: "1", reps: "30 minutes", rest: "—", url: "" }
+        ]
+      },
+      { id: "4-4", name: "Day 4 — Upper Body Push + Arms", detail: "Press pattern + isolation finishers", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Lying Chest Press", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/xLtERNd9ECA" },
+          { name: "Tricep Alternating Kickbacks", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/CVRMwhHCs6g" },
+          { name: "Full Can", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/5z2UyhpzRPE" },
+          { name: "Single-Arm Tricep Extensions", sets: "2-3", reps: "10-12 each arm", rest: "30s", url: "https://youtu.be/Tg2Ib-IcYs4" },
+          { name: "Standing Chest Fly", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/Tp8tOpe6cgY" },
+          { name: "Hammer Curl", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/1yxunTmnDDM" }
+        ]
+      },
+      { id: "4-5", name: "Day 5 — Full Body Pull + Lower", detail: "Compound movements • Total body integration", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Leg Extensions", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/myRSTKipZ1U" },
+          { name: "Reverse Grip Row", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/0ZnrMymTt5Q" },
+          { name: "Lateral Lunge", sets: "2-3", reps: "8-10 each side", rest: "30s", url: "https://youtu.be/MoOWcooUcEA" },
+          { name: "Single-Arm Lat Pull Down", sets: "2-3", reps: "10-12 each arm", rest: "30s", url: "https://youtu.be/UOw4XpauHgk" },
+          { name: "Step Ups", sets: "2-3", reps: "8-10 each leg", rest: "30s", url: "https://youtu.be/dcJDWNqA8lE" },
+          { name: "Close Grip Row", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/xECXrUvWIt8" }
+        ]
+      },
+      { id: "4-6", name: "Day 6 — Rest", detail: "Complete rest • Final recovery week begins", type: "Rest", videoUrl: "#", exercises: [] },
+      { id: "4-7", name: "Day 7 — Mobility & Recovery", detail: "Gentle movement • Active restoration", type: "Recovery", videoUrl: "#",
+        exercises: [
+          { name: "Guided Mobility Session", sets: "1", reps: "Full circuit", rest: "—", url: "https://youtu.be/ImH1apjBv3Y" }
+        ]
+      },
+      { id: "4-8", name: "Day 8 — Lower Body (Final Round)", detail: "Your strongest lower body session yet", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Romanian Deadlift (RDL)", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/bRp3-ghancw" },
+          { name: "Step Back", sets: "2-3", reps: "8-10 each leg", rest: "30s", url: "https://youtu.be/SmBYcfAw_AQ" },
+          { name: "Calf Raise", sets: "2-3", reps: "12-15", rest: "30s", url: "https://youtu.be/l-wJAQ1eL90" },
+          { name: "Goblet Squat", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/glJL9dkWOyo" },
+          { name: "Single-Leg Bridge", sets: "2-3", reps: "10-12 each leg", rest: "30s", url: "https://youtu.be/cbOmkz0deS8" },
+          { name: "Lateral Leg Raise", sets: "2-3", reps: "10-12 each side", rest: "30s", url: "https://youtu.be/J4UFbIZyCR0" }
+        ]
+      },
+      { id: "4-9", name: "Day 9 — Core (Final Round)", detail: "Your strongest core session yet", type: "Training", videoUrl: "#",
+        exercises: [
+          { name: "Weighted Marches", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/2KP0PCEb4P8" },
+          { name: "DB Passes", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/dPrc2NEFDgw" },
+          { name: "Side Bends", sets: "2-3", reps: "10-12 each side", rest: "30s", url: "https://youtu.be/kgRtPh2W9hU" },
+          { name: "Plank", sets: "2-3", reps: "30-45s hold", rest: "30s", url: "https://youtu.be/NmyhifYTnjs" },
+          { name: "Scissor Kicks", sets: "2-3", reps: "10-12", rest: "30s", url: "https://youtu.be/5v2NF3j5q2Y" },
+          { name: "Dead Bug", sets: "2-3", reps: "8", rest: "30s", url: "https://youtu.be/KWp7f0ElR5I" }
+        ]
+      }
     ],
     journal: [
       "Who are you now compared to the woman who started Week 1?",
@@ -2439,7 +2589,7 @@ function openWeek(week) {
             ` : hasVideo ? `
             <button class="video-toggle" onclick="event.stopPropagation();toggleVideo('${day.id}','${day.videoUrl}')">▶ Watch Workout</button>
             <div class="video-embed-wrap" id="vid-${day.id}"></div>
-            ` : `<span style="font-size:11px;color:var(--faint);margin-top:6px;display:block;">Video coming soon</span>`}
+            ` : `${day.type === 'Rest' || day.type === 'Recovery' ? '' : '<span style="font-size:11px;color:var(--faint);margin-top:6px;display:block;">Video coming soon</span>'}`}
           ` : ''}
         </div>
         <div class="day-type ${isRecovery ? 'recovery' : ''}">${day.type}</div>
