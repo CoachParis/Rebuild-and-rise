@@ -1404,7 +1404,7 @@
         <span>Home</span>
       </button>
       <button class="nav-tab" onclick="switchTab('guide')" aria-label="Toolkit">
-        <svg viewBox="0 0 24 24"><path d="M14.7 2.3a1 1 0 00-1.4 0l-1.3 1.3-2-2a1 1 0 00-1.4 1.4l2 2L3 12.6V17h4.4l8.6-8.6 2 2a1 1 0 001.4-1.4l-2-2 1.3-1.3a1 1 0 000-1.4z"/><path d="M3 21h18"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
         <span>Toolkit</span>
       </button>
       <button class="nav-tab" onclick="switchTab('capacity')" aria-label="Capacity">
@@ -2271,7 +2271,17 @@ function getDaysSinceStart() {
 
 function isWeekUnlocked(week) {
   if (week === 1) return true;
-  return getDaysSinceStart() >= (week - 1) * 7;
+  // Must meet BOTH: enough time passed AND previous week's training days completed
+  const timeOk = getDaysSinceStart() >= (week - 1) * 7;
+  const prevWeekComplete = isWeekCompleted(week - 1);
+  return timeOk && prevWeekComplete;
+}
+
+function isWeekCompleted(week) {
+  const data = WEEK_DATA[week];
+  if (!data) return false;
+  const trainingDays = data.days.filter(d => d.type === 'Training');
+  return trainingDays.every(d => state.completedWorkouts[d.id]);
 }
 
 function checkUnlocks() {
@@ -2425,6 +2435,7 @@ function openWeek(week) {
                 </div>
               `).join('')}
             </div>
+            ${renderStrengthLog(day.id, day.exercises, week)}
             ` : hasVideo ? `
             <button class="video-toggle" onclick="event.stopPropagation();toggleVideo('${day.id}','${day.videoUrl}')">▶ Watch Workout</button>
             <div class="video-embed-wrap" id="vid-${day.id}"></div>
@@ -2614,21 +2625,30 @@ function renderCapacityTrendChart() {
 }
 
 // ── STRENGTH LOG ──
-function renderStrengthLog(dayId, exercises) {
+function renderStrengthLog(dayId, exercises, week) {
   if (!FEATURES.strengthLog || !exercises || exercises.length === 0) return '';
   const logs = state.strengthLogs || {};
+  const history = state.strengthHistory || {};
   return `
     <div style="margin-top:12px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.2);border-radius:12px;padding:12px;">
       <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--purple-light);font-weight:600;margin-bottom:10px;">💪 Strength Log</div>
       ${exercises.map(ex => {
-        const logKey = dayId + '-' + ex.name.replace(/\s/g, '');
+        const exKey = ex.name.replace(/\s/g, '');
+        const logKey = dayId + '-' + exKey;
         const saved = logs[logKey] || '';
+        // Find the most recent entry for this exercise across ALL days (excluding current)
+        const exHistory = history[exKey] || [];
+        const lastEntry = exHistory.filter(h => h.dayId !== dayId).slice(-1)[0];
+        const lastHint = lastEntry ? `<div style="font-size:9.5px;color:var(--faint);margin-top:2px;">↳ last time: ${lastEntry.weight} lb (W${lastEntry.week})</div>` : '';
         return `
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-            <span style="font-size:11px;color:var(--white);flex:1;">${ex.name}</span>
-            <input type="text" placeholder="Weight used" value="${saved}"
-              onchange="saveStrengthLog('${logKey}', this.value)"
-              style="width:90px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:11px;color:var(--white);outline:none;text-align:center;" />
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">
+            <div style="flex:1;">
+              <span style="font-size:11px;color:var(--white);">${ex.name}</span>
+              ${lastHint}
+            </div>
+            <input type="text" placeholder="Weight" value="${saved}"
+              onchange="saveStrengthLog('${logKey}', '${exKey}', '${dayId}', ${week}, this.value)"
+              style="width:80px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:11px;color:var(--white);outline:none;text-align:center;flex-shrink:0;" />
           </div>
         `;
       }).join('')}
@@ -2636,11 +2656,90 @@ function renderStrengthLog(dayId, exercises) {
   `;
 }
 
-function saveStrengthLog(key, val) {
+function saveStrengthLog(key, exKey, dayId, week, val) {
   if (!state.strengthLogs) state.strengthLogs = {};
+  if (!state.strengthHistory) state.strengthHistory = {};
+  if (!state.strengthHistory[exKey]) state.strengthHistory[exKey] = [];
+
   state.strengthLogs[key] = val;
+
+  // Update history — replace existing entry for this dayId or add new one
+  const history = state.strengthHistory[exKey];
+  const existingIdx = history.findIndex(h => h.dayId === dayId);
+  const entry = { dayId, week, weight: val, date: new Date().toISOString().split('T')[0] };
+  if (existingIdx >= 0) {
+    history[existingIdx] = entry;
+  } else {
+    history.push(entry);
+  }
+
   saveState();
   showToast('Weight logged ✓');
+}
+
+// ── STRENGTH HISTORY (Progress Tab) ──
+function renderStrengthHistory() {
+  if (!FEATURES.strengthLog) return '';
+  const history = state.strengthHistory || {};
+  const entries = Object.entries(history).filter(([_, v]) => v && v.length > 0);
+
+  if (entries.length === 0) {
+    return `
+      <div style="background:#fff;border:1px solid #e0daea;border-radius:16px;padding:20px;margin-bottom:14px;">
+        <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#7c3aed;font-weight:600;margin-bottom:8px;">💪 Strength History</div>
+        <div style="font-size:13px;color:#7a5f85;font-style:italic;">Start logging weights inside your workouts to see your progress here.</div>
+      </div>
+    `;
+  }
+
+  // Build a name lookup from WEEK_DATA
+  const exNameLookup = {};
+  Object.values(WEEK_DATA).forEach(w => {
+    (w.days || []).forEach(d => {
+      (d.exercises || []).forEach(ex => {
+        const k = ex.name.replace(/\s/g, '');
+        exNameLookup[k] = ex.name;
+      });
+    });
+  });
+
+  const cards = entries.map(([exKey, list]) => {
+    const sorted = [...list].sort((a, b) => (a.week - b.week) || a.date.localeCompare(b.date));
+    const name = exNameLookup[exKey] || exKey;
+    const first = sorted[0];
+    const latest = sorted[sorted.length - 1];
+    const firstNum = parseFloat(first.weight);
+    const latestNum = parseFloat(latest.weight);
+    let trend = '';
+    if (!isNaN(firstNum) && !isNaN(latestNum) && firstNum > 0 && sorted.length > 1) {
+      const pct = Math.round(((latestNum - firstNum) / firstNum) * 100);
+      if (pct > 0) trend = ` <span style="color:#4ade80;font-weight:600;">📈 +${pct}%</span>`;
+      else if (pct < 0) trend = ` <span style="color:#ef4444;font-weight:600;">${pct}%</span>`;
+    }
+    const rows = sorted.map(h => `
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#4a3d5c;padding:4px 0;border-bottom:1px solid #f0ebf5;">
+        <span>Week ${h.week} — ${h.date}</span>
+        <span style="font-weight:600;">${h.weight} lb</span>
+      </div>
+    `).join('');
+
+    return `
+      <details style="background:#faf7fc;border:1px solid #e8dff5;border-radius:12px;padding:12px 14px;margin-bottom:8px;">
+        <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#4a3d5c;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+          <span>${name}${trend}</span>
+          <span style="font-size:11px;color:#7c3aed;">${sorted.length} ${sorted.length === 1 ? 'entry' : 'entries'} ▾</span>
+        </summary>
+        <div style="margin-top:10px;">${rows}</div>
+      </details>
+    `;
+  }).join('');
+
+  return `
+    <div style="background:#fff;border:1px solid #e0daea;border-radius:16px;padding:20px;margin-bottom:14px;">
+      <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#7c3aed;font-weight:600;margin-bottom:14px;">💪 Strength History</div>
+      ${cards}
+    </div>
+  `;
 }
   function renderMealTrendChart() {
   const logs = state.mealLogs || {};
@@ -4175,6 +4274,8 @@ function renderProgress() {
         <div style="font-size:13px;color:#4a3d5c;">Unlocks at Day 28</div>
       </div>
     `}
+
+    ${renderStrengthHistory()}
   `;
 
   document.getElementById('progress-content').innerHTML = html;
