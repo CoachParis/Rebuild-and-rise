@@ -4971,15 +4971,18 @@ window.openAdjustDateModal = function(clientId, currentDays) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
   
   overlay.innerHTML = `
-    <div style="background:#2e1a35;border:1px solid #4a3060;border-radius:14px;padding:24px;max-width:400px;width:100%;font-family:'DM Sans',sans-serif;color:#f5eef8;">
-      <div style="font-size:18px;font-weight:600;margin-bottom:16px;">Adjust Client Days</div>
-      <div style="font-size:13px;color:#9d7eb8;margin-bottom:4px;">Current: ${currentDays} days in</div>
+    <div style="background:#2e1a35;border:1px solid #4a3060;border-radius:14px;padding:24px;max-width:450px;width:100%;font-family:'DM Sans',sans-serif;color:#f5eef8;">
+      <div style="font-size:18px;font-weight:600;margin-bottom:4px;">Reset Client Progress</div>
+      <div style="font-size:12px;color:#9d7eb8;margin-bottom:20px;">This will mark all training days up to the selected day as complete and unlock the program to that point.</div>
+      
       <div style="margin-bottom:20px;">
-        <input type="number" id="adjust-days-input" value="${currentDays}" min="0" max="200" style="width:100%;background:#1e1020;border:1px solid #4a3060;border-radius:10px;padding:12px;font-size:14px;color:#f5eef8;outline:none;box-sizing:border-box;" />
+        <div style="font-size:12px;color:#cdc6df;margin-bottom:8px;font-weight:600;">Select target day (1-30):</div>
+        <input type="number" id="reset-day-input" value="${currentDays}" min="1" max="30" style="width:100%;background:#1e1020;border:1px solid #4a3060;border-radius:10px;padding:12px;font-size:14px;color:#f5eef8;outline:none;box-sizing:border-box;" />
       </div>
+      
       <div style="display:flex;gap:8px;">
-        <button onclick="saveAdjustedDate('${clientId}', document.getElementById('adjust-days-input').value); document.querySelector('[data-adjust-modal]').remove();" style="flex:1;background:#7c3aed;color:white;border:none;border-radius:8px;padding:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Save</button>
-        <button onclick="this.closest('[data-adjust-modal]').remove();" style="flex:1;background:#4a3060;color:#cdc6df;border:none;border-radius:8px;padding:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel</button>
+        <button onclick="saveClientReset('${clientId}', document.getElementById('reset-day-input').value); document.querySelector('[data-adjust-modal]').remove();" style="flex:1;background:#7c3aed;color:white;border:none;border-radius:8px;padding:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;">Reset Client</button>
+        <button onclick="this.closest('[data-adjust-modal]').remove();" style="flex:1;background:#4a3060;color:#cdc6df;border:none;border-radius:8px;padding:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;">Cancel</button>
       </div>
     </div>
   `;
@@ -4987,26 +4990,53 @@ window.openAdjustDateModal = function(clientId, currentDays) {
   document.body.appendChild(overlay);
 };
 
-window.saveAdjustedDate = async function(clientId, newDays) {
+window.saveClientReset = async function(clientId, targetDay) {
   try {
     const { updateDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
     const db = window._db;
     if (!db) { alert('Database error. Try again.'); return; }
     
-    const daysSinceStart = parseInt(newDays) || 0;
-    const newStartDate = Date.now() - (daysSinceStart * 86400000);
+    const target = parseInt(targetDay) || 1;
+    if (target < 1 || target > 30) { alert('Please enter a day between 1 and 30.'); return; }
+    
+    // Build completedWorkouts object — mark all training days up to target as complete
+    const completedWorkouts = {};
+    let dayCount = 0;
+    
+    // Iterate through all weeks and days
+    for (let w = 1; w <= 4; w++) {
+      const week = WEEK_DATA[w];
+      if (!week) continue;
+      
+      for (let d = 0; d < week.days.length; d++) {
+        const day = week.days[d];
+        dayCount++;
+        
+        // Mark training days as complete if we haven't reached target yet
+        if (day.type === 'Training' && dayCount <= target) {
+          completedWorkouts[day.id] = true;
+        } else if (dayCount > target) {
+          break;
+        }
+      }
+      if (dayCount > target) break;
+    }
+    
+    // Calculate startDate: target day means X days have passed
+    const newStartDate = Date.now() - (target * 86400000);
     
     const userRef = doc(db, 'users', clientId);
     await updateDoc(userRef, {
-      'state.startDate': newStartDate
+      'state.startDate': newStartDate,
+      'state.completedWorkouts': completedWorkouts
     });
     
-    showToast('✓ Days adjusted for client');
+    showToast('✓ Client reset to Day ' + target);
     // Refresh client list
     await openClientDashboard();
   } catch(e) {
-    console.error('Date adjustment error:', e);
-    alert('Error adjusting date: ' + e.message);
+    console.error('Reset error:', e);
+    alert('Error resetting client: ' + e.message);
   }
 };
 
