@@ -1749,31 +1749,7 @@ onAuthStateChanged(auth, async (user) => {
     window.currentUser = user;
     window.isCoach = user.email === COACH_EMAIL;
 
-    // ── SINGLE SESSION ENFORCEMENT ──
-    // Write this session token to Firebase
-    if (!window.sessionInitialized) {
-    window.sessionInitialized = true;  
-    const sessionRef = doc(db, 'sessions', user.uid);
-    await setDoc(sessionRef, {
-      token: SESSION_TOKEN,
-      loginAt: serverTimestamp(),
-      email: user.email
-    });
-
-    // Listen for session changes — if another device logs in, kick this one out
-    const unsubscribeSession = onSnapshot(sessionRef, (snap) => {
-      if (snap.exists() && snap.data().token !== SESSION_TOKEN) {
-        // Another session took over — sign this one out
-        unsubscribeSession();
-        signOut(auth);
-        showSessionKickedOverlay();
-      }
-    });
-
-    window.unsubscribeSession = unsubscribeSession;
-  }
-
-    // Load user data from Firestore
+    // Load user data from Firestore (removed single session enforcement)
     const userDoc = await getDoc(doc(db, 'users', user.uid));
     if (userDoc.exists()) {
       const cloudState = userDoc.data().state;
@@ -1821,6 +1797,7 @@ onAuthStateChanged(auth, async (user) => {
         : {};
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
+        displayName: window.state && window.state.clientName ? window.state.clientName : 'Client',
         createdAt: serverTimestamp(),
         accessExpires: Date.now() + (40 * 86400000),
         state: localState,
@@ -1840,7 +1817,7 @@ onAuthStateChanged(auth, async (user) => {
     }
     if (expired) { showAccessExpiredOverlay(user.email); return; }
     if (userDoc && userDoc.exists()) { document.getElementById('app').classList.add('active'); init(); } else { document.getElementById('welcome').classList.add('active'); }
-    document.getElementById('user-email-display').textContent = user.email;
+    document.getElementById('user-email-display').textContent = userDoc.data().displayName || user.email;
 
     // Show coach badge if coach
     if (window.isCoach) {
@@ -4955,7 +4932,7 @@ async function openClientDashboard() {
           <div style="background:#2e1a35;border:1px solid #4a3060;border-radius:14px;padding:16px;margin-bottom:12px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
               <div>
-                <div style="font-size:13px;font-weight:600;color:#f5eef8;margin-bottom:2px;">${client.email || 'Unknown'}</div>
+                <div style="font-size:13px;font-weight:600;color:#f5eef8;margin-bottom:2px;">${client.displayName || client.email || 'Unknown'}</div>
                 <div style="font-size:11px;color:#9d7eb8;">Last active: ${lastActiveText}</div>
               </div>
               <div style="font-size:10px;font-weight:600;color:${capacityColor};background:rgba(0,0,0,0.3);border-radius:100px;padding:3px 10px;letter-spacing:0.08em;text-transform:uppercase;">${lastCapacity} capacity</div>
@@ -4975,6 +4952,7 @@ async function openClientDashboard() {
               </div>
             </div>
             ${s.testimonial ? `<div style="margin-top:10px;background:#1e1020;border-left:3px solid #9d5cf6;border-radius:8px;padding:10px;font-size:12px;color:#cdc6df;font-style:italic;line-height:1.5;">"${s.testimonial}"</div>` : ''}
+            <button onclick="openAdjustDateModal('${client.id}', '${days}')" style="width:100%;margin-top:12px;background:rgba(124,58,237,0.2);color:#9d5cf6;border:1px solid #7c3aed;border-radius:8px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:0.08em;">⏰ Adjust Days</button>
           </div>
         `;
       }).join('')}
@@ -4986,6 +4964,51 @@ async function openClientDashboard() {
     document.getElementById('client-list-content').innerHTML = `<div style="color:#ef4444;font-size:13px;">Could not load clients. Check Firestore security rules.<br><br><span style="font-size:11px;color:#9d7eb8;">${e.message}</span></div>`;
   }
 }
+
+// ══════════════ ADJUST CLIENT DATE ══════════════
+window.openAdjustDateModal = function(clientId, currentDays) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  
+  overlay.innerHTML = `
+    <div style="background:#2e1a35;border:1px solid #4a3060;border-radius:14px;padding:24px;max-width:400px;width:100%;font-family:'DM Sans',sans-serif;color:#f5eef8;">
+      <div style="font-size:18px;font-weight:600;margin-bottom:16px;">Adjust Client Days</div>
+      <div style="font-size:13px;color:#9d7eb8;margin-bottom:4px;">Current: ${currentDays} days in</div>
+      <div style="margin-bottom:20px;">
+        <input type="number" id="adjust-days-input" value="${currentDays}" min="0" max="200" style="width:100%;background:#1e1020;border:1px solid #4a3060;border-radius:10px;padding:12px;font-size:14px;color:#f5eef8;outline:none;box-sizing:border-box;" />
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveAdjustedDate('${clientId}', document.getElementById('adjust-days-input').value); document.querySelector('[data-adjust-modal]').remove();" style="flex:1;background:#7c3aed;color:white;border:none;border-radius:8px;padding:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Save</button>
+        <button onclick="this.closest('[data-adjust-modal]').remove();" style="flex:1;background:#4a3060;color:#cdc6df;border:none;border-radius:8px;padding:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel</button>
+      </div>
+    </div>
+  `;
+  overlay.setAttribute('data-adjust-modal', 'true');
+  document.body.appendChild(overlay);
+};
+
+window.saveAdjustedDate = async function(clientId, newDays) {
+  try {
+    const { updateDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const db = window._db;
+    if (!db) { alert('Database error. Try again.'); return; }
+    
+    const daysSinceStart = parseInt(newDays) || 0;
+    const newStartDate = Date.now() - (daysSinceStart * 86400000);
+    
+    const userRef = doc(db, 'users', clientId);
+    await updateDoc(userRef, {
+      'state.startDate': newStartDate
+    });
+    
+    showToast('✓ Days adjusted for client');
+    // Refresh client list
+    await openClientDashboard();
+  } catch(e) {
+    console.error('Date adjustment error:', e);
+    alert('Error adjusting date: ' + e.message);
+  }
+};
 
 // ══════════════ TOAST ══════════════
 function showToast(msg) {
