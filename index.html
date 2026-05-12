@@ -5000,39 +5000,42 @@ window.saveClientReset = async function(clientId, targetDay) {
     const target = parseInt(targetDay) || 1;
     if (target < 1 || target > 30) { alert('Please enter a day between 1 and 30.'); return; }
     
-    // Build completedWorkouts object — mark all training days up to target as complete
+    // Mark EVERY day from 1 to target as complete (regardless of type)
     const completedWorkouts = {};
     let dayCount = 0;
     
-    // Iterate through all weeks and days, counting ONLY training days
     for (let w = 1; w <= 4; w++) {
       const week = WEEK_DATA[w];
       if (!week) continue;
       
       for (let d = 0; d < week.days.length; d++) {
         const day = week.days[d];
+        dayCount++;
         
-        // Only count training days
-        if (day.type === 'Training') {
-          dayCount++;
-          // Mark as complete if within target
-          if (dayCount <= target) {
-            completedWorkouts[day.id] = true;
-          }
+        // Mark as complete if day count is within target
+        if (dayCount <= target) {
+          completedWorkouts[day.id] = true;
+        } else {
+          break;
         }
       }
+      if (dayCount >= target) break;
     }
     
     // Calculate startDate: target day means X days have passed
     const newStartDate = Date.now() - (target * 86400000);
     
+    // Calculate completion % (days passed / 30 total days)
+    const completionPct = Math.round((target / 30) * 100);
+    
     const userRef = doc(db, 'users', clientId);
     await updateDoc(userRef, {
       'state.startDate': newStartDate,
-      'state.completedWorkouts': completedWorkouts
+      'state.completedWorkouts': completedWorkouts,
+      'state.completionPercentage': completionPct
     });
     
-    showToast('✓ Client reset to Day ' + target);
+    showToast('✓ Client reset to Day ' + target + ' (' + completionPct + '%)');
     // Refresh client list
     await openClientDashboard();
   } catch(e) {
