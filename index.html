@@ -2444,16 +2444,10 @@ function getCurrentWeek() {
 
 // ══════════════ DASHBOARD ══════════════
 function updateDashboard() {
-  // Calculate completion % based on actual training days completed vs total training days
-  let totalTrainingDays = 0;
-  for (let w = 1; w <= 4; w++) {
-    const week = WEEK_DATA[w];
-    if (week) {
-      totalTrainingDays += week.days.filter(d => d.type === 'Training').length;
-    }
-  }
+  // Calculate completion % based on actual days completed vs 30-day total
   const completed = Object.values(state.completedWorkouts).filter(Boolean).length;
-  const pct = Math.round((completed / totalTrainingDays) * 100);
+  const totalDays = 30;
+  const pct = Math.round((getDaysSinceStart() / totalDays) * 100);
   const days = getDaysSinceStart();
 
   document.getElementById('overallPct').textContent = pct + '%';
@@ -5010,23 +5004,23 @@ window.saveClientReset = async function(clientId, targetDay) {
     const completedWorkouts = {};
     let dayCount = 0;
     
-    // Iterate through all weeks and days
+    // Iterate through all weeks and days, counting ONLY training days
     for (let w = 1; w <= 4; w++) {
       const week = WEEK_DATA[w];
       if (!week) continue;
       
       for (let d = 0; d < week.days.length; d++) {
         const day = week.days[d];
-        dayCount++;
         
-        // Mark training days as complete if we haven't reached target yet
-        if (day.type === 'Training' && dayCount <= target) {
-          completedWorkouts[day.id] = true;
-        } else if (dayCount > target) {
-          break;
+        // Only count training days
+        if (day.type === 'Training') {
+          dayCount++;
+          // Mark as complete if within target
+          if (dayCount <= target) {
+            completedWorkouts[day.id] = true;
+          }
         }
       }
-      if (dayCount > target) break;
     }
     
     // Calculate startDate: target day means X days have passed
