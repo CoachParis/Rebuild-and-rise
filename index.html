@@ -2400,7 +2400,7 @@ function getDaysSinceStart() {
 
 function isWeekUnlocked(week) {
   if (week === 1) return true;
-  // Must meet BOTH: enough time passed AND previous week's training days completed
+  // Must meet BOTH: enough time passed AND ALL days from previous week completed
   const timeOk = getDaysSinceStart() >= (week - 1) * 7;
   const prevWeekComplete = isWeekCompleted(week - 1);
   return timeOk && prevWeekComplete;
@@ -2409,8 +2409,8 @@ function isWeekUnlocked(week) {
 function isWeekCompleted(week) {
   const data = WEEK_DATA[week];
   if (!data) return false;
-  const trainingDays = data.days.filter(d => d.type === 'Training');
-  return trainingDays.every(d => state.completedWorkouts[d.id]);
+  // ALL days must be complete (training, rest, cardio, mobility — everything counts)
+  return data.days.every(d => state.completedWorkouts[d.id]);
 }
 
 function checkUnlocks() {
@@ -5000,7 +5000,7 @@ window.saveClientReset = async function(clientId, targetDay) {
     const target = parseInt(targetDay) || 1;
     if (target < 1 || target > 30) { alert('Please enter a day between 1 and 30.'); return; }
     
-    // Mark EVERY day from 1 to target as complete (regardless of type)
+    // Mark days 1 to (target-1) as complete — target day itself is NOT marked complete
     const completedWorkouts = {};
     let dayCount = 0;
     
@@ -5012,10 +5012,10 @@ window.saveClientReset = async function(clientId, targetDay) {
         const day = week.days[d];
         dayCount++;
         
-        // Mark as complete if day count is within target
-        if (dayCount <= target) {
+        // Mark as complete only if BEFORE target (not including target)
+        if (dayCount < target) {
           completedWorkouts[day.id] = true;
-        } else {
+        } else if (dayCount >= target) {
           break;
         }
       }
@@ -5025,8 +5025,8 @@ window.saveClientReset = async function(clientId, targetDay) {
     // Calculate startDate: target day means X days have passed
     const newStartDate = Date.now() - (target * 86400000);
     
-    // Calculate completion % (days passed / 30 total days)
-    const completionPct = Math.round((target / 30) * 100);
+    // Calculate completion % based on days before target
+    const completionPct = Math.round(((target - 1) / 30) * 100);
     
     const userRef = doc(db, 'users', clientId);
     await updateDoc(userRef, {
@@ -5035,9 +5035,9 @@ window.saveClientReset = async function(clientId, targetDay) {
       'state.completionPercentage': completionPct
     });
     
-    showToast('✓ Client reset to Day ' + target + ' (' + completionPct + '%)');
-    // Refresh client list
-    await openClientDashboard();
+    showToast('✓ Client at Day ' + target + ' (' + completionPct + '%)');
+    // Refresh page to update week pills and all UI elements
+    setTimeout(() => location.reload(), 1500);
   } catch(e) {
     console.error('Reset error:', e);
     alert('Error resetting client: ' + e.message);
