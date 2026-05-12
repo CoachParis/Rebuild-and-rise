@@ -2404,10 +2404,13 @@ function getDaysSinceStart() {
 
 function isWeekUnlocked(week) {
   if (week === 1) return true;
-  // Simple time-based unlock: Week N unlocks at day (N-1)*7
-  // Week 2 at day 7, Week 3 at day 14, Week 4 at day 21
-  const timeOk = getDaysSinceStart() >= (week - 1) * 7;
-  return timeOk;
+  // Week unlocks only if you've actually reached those days
+  // Week 2: You're on day 8+ (7 days = week 1 complete)
+  // Week 3: You're on day 15+ (14 days = week 2 complete)
+  // Week 4: You're on day 22+ (21 days = week 3 complete)
+  const daysPassed = getDaysSinceStart();
+  const weekStartDay = (week - 1) * 7;
+  return daysPassed >= weekStartDay;
 }
 
 function isWeekCompleted(week) {
@@ -2424,7 +2427,10 @@ function checkUnlocks() {
     const card = document.getElementById(`wcard-${w}`);
 
     if (unlocked) {
-      if (pill) { pill.classList.remove('locked'); pill.classList.add(w === getCurrentWeek() ? 'current' : 'unlocked'); }
+      if (pill) { 
+        pill.classList.remove('locked'); 
+        pill.classList.add(w === getCurrentWeek() ? 'current' : 'unlocked'); 
+      }
       if (card) {
         card.classList.remove('locked');
         card.style.opacity = '1';
@@ -2437,6 +2443,10 @@ function checkUnlocks() {
         card.querySelector('.day-check').style.fontSize = '20px';
         card.onclick = () => openWeek(w);
       }
+    } else {
+      // Ensure locked state is applied if week is NOT unlocked
+      if (pill) { pill.classList.add('locked'); pill.classList.remove('current', 'unlocked'); }
+      if (card) { card.classList.add('locked'); }
     }
   }
 }
