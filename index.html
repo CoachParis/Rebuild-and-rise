@@ -2424,7 +2424,6 @@ function checkUnlocks() {
     const card = document.getElementById(`wcard-${w}`);
 
     if (unlocked) {
-      // FIX PILL: remove locked class, add correct state, remove lock icon, add click
       if (pill) { 
         pill.classList.remove('locked'); 
         pill.classList.add(w === getCurrentWeek() ? 'current' : 'unlocked');
@@ -2432,7 +2431,6 @@ function checkUnlocks() {
         if (lockIcon) lockIcon.style.display = 'none';
         pill.onclick = () => openWeek(w);
       }
-      // FIX CARD (Program tab)
       if (card) {
         card.classList.remove('locked');
         card.style.opacity = '1';
@@ -2446,7 +2444,6 @@ function checkUnlocks() {
         card.onclick = () => openWeek(w);
       }
     } else {
-      // Keep locked state
       if (pill) { 
         pill.classList.add('locked'); 
         pill.classList.remove('current', 'unlocked');
@@ -2478,7 +2475,7 @@ function updateDashboard() {
 
   document.getElementById('overallPct').textContent = pct + '%';
   document.getElementById('overallBar').style.width = pct + '%';
-  document.getElementById('statDays').textContent = days;
+  document.getElementById('statDays').textContent = days + 1;
   document.getElementById('statWorkouts').textContent = completed;
   document.getElementById('statStreak').textContent = state.streak || 1;
 
@@ -2648,14 +2645,13 @@ function isDayUnlocked(week, dayIndex) {
   const data = WEEK_DATA[week];
   if (dayIndex === 0) return true;
 
-  // Get all training days before this day
-  const previousTrainingDays = data.days.slice(0, dayIndex).filter(d => d.type === 'Training');
-
-  // All previous training days must be completed
-  const allCompleted = previousTrainingDays.every(d => state.completedWorkouts[d.id]);
+  // ALL previous days must be completed (training, rest, recovery — everything)
+  const allPreviousDays = data.days.slice(0, dayIndex);
+  const allCompleted = allPreviousDays.every(d => state.completedWorkouts[d.id]);
   if (!allCompleted) return false;
 
   // Check 18-hour lock from last completed training day
+  const previousTrainingDays = allPreviousDays.filter(d => d.type === 'Training');
   const lastTrainingDay = previousTrainingDays[previousTrainingDays.length - 1];
   if (!lastTrainingDay) return true;
 
@@ -2716,7 +2712,7 @@ function toggleDay(id, e) {
   // Save timestamp when completing a training day
   if (state.completedWorkouts[id] && day.type === 'Training') {
     if (!state.completedAt) state.completedAt = {};
-    if (!state.completedAt[id]) state.completedAt[id] = Date.now();     for (let i = dayIndex + 1; i < data.days.length; i++) { if (data.days[i].type === 'Training') break; state.completedWorkouts[data.days[i].id] = true; }
+    if (!state.completedAt[id]) state.completedAt[id] = Date.now();
   }
 
   saveState();
