@@ -2404,13 +2404,10 @@ function getDaysSinceStart() {
 
 function isWeekUnlocked(week) {
   if (week === 1) return true;
-  // Week unlocks only if you've actually reached those days
-  // Week 2: You're on day 8+ (7 days = week 1 complete)
-  // Week 3: You're on day 15+ (14 days = week 2 complete)
-  // Week 4: You're on day 22+ (21 days = week 3 complete)
-  const daysPassed = getDaysSinceStart();
-  const weekStartDay = (week - 1) * 7;
-  return daysPassed >= weekStartDay;
+  // Must meet BOTH: enough time passed AND ALL days from previous week completed
+  const timeOk = getDaysSinceStart() >= (week - 1) * 7;
+  const prevWeekComplete = isWeekCompleted(week - 1);
+  return timeOk && prevWeekComplete;
 }
 
 function isWeekCompleted(week) {
@@ -2427,10 +2424,15 @@ function checkUnlocks() {
     const card = document.getElementById(`wcard-${w}`);
 
     if (unlocked) {
+      // FIX PILL: remove locked class, add correct state, remove lock icon, add click
       if (pill) { 
         pill.classList.remove('locked'); 
-        pill.classList.add(w === getCurrentWeek() ? 'current' : 'unlocked'); 
+        pill.classList.add(w === getCurrentWeek() ? 'current' : 'unlocked');
+        const lockIcon = pill.querySelector('.lock-icon');
+        if (lockIcon) lockIcon.style.display = 'none';
+        pill.onclick = () => openWeek(w);
       }
+      // FIX CARD (Program tab)
       if (card) {
         card.classList.remove('locked');
         card.style.opacity = '1';
@@ -2444,9 +2446,19 @@ function checkUnlocks() {
         card.onclick = () => openWeek(w);
       }
     } else {
-      // Ensure locked state is applied if week is NOT unlocked
-      if (pill) { pill.classList.add('locked'); pill.classList.remove('current', 'unlocked'); }
-      if (card) { card.classList.add('locked'); }
+      // Keep locked state
+      if (pill) { 
+        pill.classList.add('locked'); 
+        pill.classList.remove('current', 'unlocked');
+        const lockIcon = pill.querySelector('.lock-icon');
+        if (lockIcon) lockIcon.style.display = 'block';
+        pill.onclick = null;
+      }
+      if (card) { 
+        card.classList.add('locked'); 
+        card.style.opacity = '0.4';
+        card.style.cursor = 'not-allowed';
+      }
     }
   }
 }
@@ -2469,6 +2481,9 @@ function updateDashboard() {
   document.getElementById('statDays').textContent = days;
   document.getElementById('statWorkouts').textContent = completed;
   document.getElementById('statStreak').textContent = state.streak || 1;
+
+  // Update week pill and card unlock states
+  checkUnlocks();
 
   // Render feature-flagged dashboard sections
   const featuresEl = document.getElementById('dashboard-features');
